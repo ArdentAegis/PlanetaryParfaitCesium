@@ -170,7 +170,8 @@ namespace TerrainEngine
                 }
                 
                 StartCoroutine(ChangeState(SceneSession.DONE));
-                TerrainMenu.sceneDelegate.Invoke(userScenes);   
+                TerrainMenu.sceneDelegate.Invoke(userScenes);
+                Login.LoggedIn = true;
             }
         }
 

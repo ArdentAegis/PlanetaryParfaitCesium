@@ -62,7 +62,8 @@ namespace UserInterface
             {
                 ToggleMenu(false);
                 PreviousMenu = this;
-                Login.TryLogin();
+                if (Login.LoggedIn) TerrainMenu.OpenMenu(true);
+                else Login.TryLogin();
             });
             
             multiuserButton.onClick.AddListener(delegate

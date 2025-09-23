@@ -16,8 +16,10 @@ namespace UserInterface
         public delegate void LoginDelegate(UnityWebRequest.Result result);
         public static LoginDelegate FailedLogin { get; private set; }
         public static MenuDelegate TryLogin { get; private set; }
+
+        public static bool LoggedIn = false;
         
-        [Header("Login GameObjectss")]
+        [Header("Login GameObjects")]
         public TMP_InputField usernameField;
         public TMP_InputField passwordField;
         public Button loginButton;
