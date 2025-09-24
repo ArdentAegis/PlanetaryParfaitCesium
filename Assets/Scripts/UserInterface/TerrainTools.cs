@@ -232,6 +232,7 @@ namespace UserInterface
         public void ToggleTab(bool active)
         {
             tabImg.color = active ? Color.white: highlightColor;
+            generalTip.text = "Toggle Tab to Interact with Toolbar";
         }
 
         /// <summary>
@@ -241,6 +242,7 @@ namespace UserInterface
         public void ToggleShift(bool active)
         {
             shiftImg.color = active ? Color.white: highlightColor;
+            generalTip.text = "Toggle Shift to Move Platform";
         }
 
         /// <summary>
