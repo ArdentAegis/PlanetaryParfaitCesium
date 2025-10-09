@@ -178,7 +178,7 @@ namespace TerrainEngine.Tools
         /// </summary>
         public void UpdateLabelText(TextMeshPro text)
         {
-            menuText.text = "Current Scale: " + bars[index].realWorldHeight + " " +
+            menuText.text = "Scalebar Size: " + bars[index].realWorldHeight + " " +
                             SceneDownloader.singleton.scene.units;
             /*bars[index].label = bars[index].realWorldHeight + " " + SceneDownloader.singleton.scene.units;
             text.text = bars[index].label;*/

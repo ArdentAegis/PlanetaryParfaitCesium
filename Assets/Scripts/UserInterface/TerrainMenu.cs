@@ -29,6 +29,7 @@ namespace UserInterface
         public Button refreshButton;
         public Button backToMenuButton;
         public Button backToGameButton;
+        public Button logoutButton;
         
         void Awake()
         {
@@ -60,8 +61,8 @@ namespace UserInterface
             backToMenuButton.onClick.AddListener(delegate
             {
                 ToggleMenu(false);
-                MainMenu.OpenMenu.Invoke(true);
-                //Login.username = "";
+                MainMenu.OpenMenu(true);
+                Login.username = "";
                 Login.password = "";
             });
             
@@ -71,6 +72,13 @@ namespace UserInterface
                 ToggleMenu(false);
                 MainMenu.OpenPrimaryMenus(false);
                 GameState.InTerrain = true;
+            });
+            
+            logoutButton.onClick.AddListener(delegate
+            {
+                ToggleMenu(false);
+                MainMenu.OpenMenu(true);
+                Login.LoggedIn = false;
             });
         }
 
