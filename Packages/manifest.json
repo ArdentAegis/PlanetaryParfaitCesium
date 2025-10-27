@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.cesium.unity": "1.14.1",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.animation.rigging": "1.1.1",
     "com.unity.burst": "1.8.0-pre.1",
@@ -55,5 +56,14 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "Cesium",
+      "url": "https://unity.pkg.cesium.com",
+      "scopes": [
+        "com.cesium.unity"
+      ]
+    }
+  ]
 }
