@@ -31,10 +31,12 @@ For information about the Meteor Studio Research lab, please visit our lab's [we
 
 ## People
 ### Project Leads
-- [Dr. Lauren Gold](https://github.com/LaurenGold) - Project Lead, Postdoc
-- [Dr. Robert LiKamWa]() - PI
+- [Dr. Lauren Gold](https://github.com/LaurenGold) - PI
+- [Dr. Robert LiKamWa](https://github.com/roblkw-asu) 
 
 ### Student Developers 
+- Fife Akinyanmi
+- Gage Baldassaro
 - Yan Rong
 - Arabelle Friedman
 - Orion Dobos
