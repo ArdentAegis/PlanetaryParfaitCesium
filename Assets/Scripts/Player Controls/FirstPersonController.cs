@@ -14,6 +14,7 @@ using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine.Serialization;
 using Menu = UserInterface.Menu;
+using CesiumForUnity;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
 #endif
@@ -67,6 +68,9 @@ namespace XRControls{
         [Tooltip("How far in degrees can you move the camera down")]
         public float BottomClamp = -90.0f;
 
+        // For moving the Cesium opject
+        [Header("Cesium Integration")]
+        public CesiumGeoreference Georeference;
         // camera
         private float _cameraTargetPitch;
 
@@ -315,6 +319,8 @@ namespace XRControls{
                 
                 //moving tiles
                 terrainTiles.transform.position = Vector3.MoveTowards(terrainTiles.transform.position, terrainTiles.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
+                // Now moves Cesium Georeference. 
+                Georeference.transform.position = Vector3.MoveTowards(Georeference.transform.position, Georeference.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
             }
 
         }

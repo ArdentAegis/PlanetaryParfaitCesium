@@ -188,7 +188,11 @@ namespace TerrainEngine.Tools
                 
                 //gets heightvalue from depth texture at (x, z) texture coordinates 
                 float heightValue = heightTexture.GetPixel(x_pos_img, z_pos_img).r; //height texture is stored in the red channel
-                float h_t = heightValue * material.GetFloat("_scaleFactor"); //scales heightvalue by current exag value
+                // -1 added because this is upside down somehow. 
+                // Multiplied by 1e-5 to account for the factor added to the shell material shader. 
+                //float h_t = heightValue * material.GetFloat("_scaleFactor") * -1f * .00001f; //scales heightvalue by current exag value
+
+                float h_t = heightValue * material.GetFloat("_scaleFactor") * .00001f;
                 float ht_minus_rty = (h_t - ray_t.y);
                 
                 //determines if (x, z) position is in bounds

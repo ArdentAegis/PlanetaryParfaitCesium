@@ -48,14 +48,27 @@ namespace TerrainEngine {
             uvs = new Vector2[length, width];
 
             // Coordinates! 
-            string[] tllonlat = scene.top_left.Split(", ");
-            double startlon = Convert.ToDouble(tllonlat[0]);
-            double startlat = Convert.ToDouble(tllonlat[1]);
+            string[] bllonlat = scene.bottom_left.Split(", ");
+            double startlon = Convert.ToDouble(bllonlat[0]);
+            double startlat = Convert.ToDouble(bllonlat[1]);
 
-            string[] brlonlat = scene.bottom_right.Split(", ");
-            double endlon = Convert.ToDouble(brlonlat[0]);
-            double endlat = Convert.ToDouble(brlonlat[1]);
+            string[] trlonlat = scene.top_right.Split(", ");
+            double endlon = Convert.ToDouble(trlonlat[0]);
+            double endlat = Convert.ToDouble(trlonlat[1]);
             
+            double londist = endlon - startlon;
+            if (startlon > endlon) {
+                londist += 360;
+            }
+            double latdist = endlat - startlat;
+            if (startlat > endlat)
+            {
+                latdist += 180;
+            }
+
+            //Debug.Log("Latitude: (" + startlat + ", " + endlat + ")");
+            //Debug.Log("Longitude: (" + startlon + ", " + endlon + ")");
+
             // Length - 1 by width - 1 squares between vertices. 
             // Two triangles for each square
             // Three verties for each triangle
@@ -64,11 +77,11 @@ namespace TerrainEngine {
             for (int i = 0; i < length; i++) 
             {
                 // Interpolating between the start and end latitudes of the scene
-                double lat = startlat + (i / (length - 1d)) * (endlat - startlat);
+                double lat = (startlat + (i / (length - 1d)) * (latdist) % 180);
                 for (int j = 0; j < width; j++)
                 {
                     // Interpolating between the start and end longitudes of the scene (this gets calculated length times. Optimize with dynamic programming later)
-                    double lon = startlon + (j / (width - 1d)) * (endlon - startlon);
+                    double lon = (startlon + (j / (width - 1d)) * (londist))%360;
                     //Debug.Log(lat + ", " + lon);
                     // Get the position on the sphere for the vertex
                     vertices[i, j] = getSpherePostion(lon, lat);
@@ -77,18 +90,20 @@ namespace TerrainEngine {
                     //normals[i, j] = (vertices[i,j] - GeoRefPosition).normalized;
 
                     // Set the uv of this vertex (the -1s here are so that the edge vertices have a uv of 1)
-                    uvs[i, j] = new Vector2(j/(width - 1f), (length-1-i) / (length - 1f));
+                    uvs[i, j] = new Vector2(j/(width - 1f), i / (length - 1f));
                     
                     // Triangles is a list of indices. 
                     if (i < length - 1 && j < width - 1)
                     {
                         triangles[i, j, 0] = i * length + j;
-                        triangles[i, j, 1] = i * length + j + 1;
-                        triangles[i, j, 2] = (i+1) * length + j;
+                        triangles[i, j, 1] = (i + 1) * length + j;
+                        triangles[i, j, 2] = i * length + j + 1;
+                        
                         
                         triangles[i, j, 3] = i * length + j + 1;
-                        triangles[i, j, 4] = (i + 1) * length + j + 1;
-                        triangles[i, j, 5] = (i + 1) * length + j;
+                        triangles[i, j, 4] = (i + 1) * length + j;
+                        triangles[i, j, 5] = (i + 1) * length + j + 1;
+                       
                     }
                 }
             }
@@ -136,6 +151,10 @@ namespace TerrainEngine {
             //obj.transform.localRotation = Quaternion.identity;
             obj.AddComponent<MeshFilter>();
             obj.AddComponent<MeshRenderer>();
+            
+            // Anchoring the mesh to the globe is kind of a pain at this point. 
+            //obj.AddComponent<CesiumGlobeAnchor>();
+
             obj.GetComponent<MeshFilter>().mesh = mesh;
             obj.GetComponent<MeshRenderer>().material = material;
             surface = obj;
