@@ -108,7 +108,7 @@ namespace TerrainEngine
                         // Calling the sphere shell creation function here. 
                         SceneMaterializer.singleton.tiles.GetComponent<SphereShellMaker>().MakeSurface();
                     }
-                    if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
+                    //if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
                     
                     InfoPanel.Panel.UpdateInfo(scene);
                     ScaleBar.singleton.CalculatePrefabs(scene);

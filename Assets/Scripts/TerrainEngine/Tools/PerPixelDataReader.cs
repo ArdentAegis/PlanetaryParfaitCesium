@@ -1,11 +1,14 @@
+using Multiuser.Sync;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Mathematics;
+using Unity.Netcode;
 using UnityEngine;
 using UserInterface;
-using Multiuser.Sync;
-using Unity.Netcode;
 using XRController = XRControls.XRController;
+using Unity.Mathematics;
+using CesiumForUnity;
 
 namespace TerrainEngine.Tools
 {
@@ -15,14 +18,18 @@ namespace TerrainEngine.Tools
     public class PerPixelDataReader : MonoBehaviour
     {
         #region FIELDS
-        
+
         public static PerPixelDataReader singleton;
-        
+
         /// <summary>
         /// True if per-pixel tool is enabled, false otherwise.
         /// </summary>
-        public bool readingData = false; 
-        
+        public bool readingData = false;
+
+
+        [SerializeField] public CesiumGeoreference GeoRef;
+        [SerializeField] public Transform check;
+        [SerializeField] public float surfaceHeight;
         // Pins
         public GameObject pins;
         public static List<Pin> pinList;
@@ -37,45 +44,46 @@ namespace TerrainEngine.Tools
 
         // Terrain Intersection Variables
         private Ray ray;
-        
+
         /// <summary>
         /// Determines if the ray has made an intersection with the terrain. +1 if positive, -1 if negative
         /// </summary>
         private int lastSign = 0;
-        
+
         // VR-related Variables
         [SerializeField] private XRController controlCheck; // determines if we are pressing the button in VR
         [SerializeField] private GameObject vrController;
         private bool printOnce; // ensures that a Pin is spawned into a scene once. Prevents scale bar from spawning every frame in VR
 
 
-        
+
         #region DATA
 
         public static List<float[]> floatArrays = new List<float[]>();   //list of float arrays containing per pixel data
         public static List<short[]> shortArrays = new List<short[]>();  //list of short arrays containing per pixel data
-        public static List<int[]>   intArrays = new List<int[]>();     //list of int arrays containing per pixel data
-        public static List<byte[]>  byteArrays = new List<byte[]>();  //list of byte arrays containing per pixel data
-               
-        public static List<string>  floatDataUnits = new List<string>();
-        public static List<string>  floatDataNames = new List<string>();
-        public static List<string>  shortDataUnits = new List<string>();
-        public static List<string>  shortDataNames = new List<string>();
-        
-        public static List<string>  intDataUnits = new List<string>();
-        public static List<string>  intDataNames = new List<string>();
-        public static List<string>  byteDataUnits = new List<string>();
-        public static List<string>  byteDataNames = new List<string>();
-                
-        public static string floatOutput= "";
-        public static string intOutput= "";
-        public static string byteOutput= "";
-        public static string shortOutput= "";
+        public static List<int[]> intArrays = new List<int[]>();     //list of int arrays containing per pixel data
+        public static List<byte[]> byteArrays = new List<byte[]>();  //list of byte arrays containing per pixel data
+
+        public static List<string> floatDataUnits = new List<string>();
+        public static List<string> floatDataNames = new List<string>();
+        public static List<string> shortDataUnits = new List<string>();
+        public static List<string> shortDataNames = new List<string>();
+
+        public static List<string> intDataUnits = new List<string>();
+        public static List<string> intDataNames = new List<string>();
+        public static List<string> byteDataUnits = new List<string>();
+        public static List<string> byteDataNames = new List<string>();
+
+        public static string floatOutput = "";
+        public static string intOutput = "";
+        public static string byteOutput = "";
+        public static string shortOutput = "";
         private string imagePosition = "";
-        
+
         #endregion
 
-        
+        private int framec = 0;
+        private int framem = 200;
         #endregion
 
         #region MONO
@@ -83,17 +91,18 @@ namespace TerrainEngine.Tools
         {
             singleton = this;
             pinList = new List<Pin>();
-            
-            if(GameState.IsVR)
+
+            if (GameState.IsVR)
             {
                 controlCheck = GameObject.FindGameObjectWithTag("Player").GetComponent<XRController>();
             }
-            
+
             heightTexture = material.GetTexture("_HeightMap") as Texture2D;
         }
 
-        private void Update()
+        private void FixedUpdate()
         {
+            framec++;
             if (pinList.Count != 0)
             {
                 //Ensure Pin Info follows the pins
@@ -118,6 +127,7 @@ namespace TerrainEngine.Tools
                 {
                     Vector3 mousePos = Input.mousePosition;
                     ray.origin = Camera.main.ScreenToWorldPoint(mousePos);
+                    //ray.origin = Camera.main.transform.position;
                     ray.direction = Camera.main.transform.forward;
                 }
                 else if (GameState.IsVR) //VR
@@ -129,7 +139,7 @@ namespace TerrainEngine.Tools
                 {
                     Debug.LogError("rig error");
                 }
-                
+
                 //Dynamic readout
                 if (SceneDownloader.singleton.dataLayers.Count == 0) // no layers
                 {
@@ -142,20 +152,96 @@ namespace TerrainEngine.Tools
                     TerrainTools.DynamicReadout("Per Pixel Data", imagePosition + floatOutput + shortOutput + intOutput + byteOutput);
                     CalculateRay();
                 }
-                
+
             }
 
             //makes sure that pins are ONLY being printed once when a user holds down controller grip
             if (controlCheck.triggerActive == false) printOnce = false;
         }
         #endregion
-        
+
         #region METHODS
+
+        public void CalculateRay()
+        {
+            float step = 0.01f;
+            lastSign = 0;
+
+            //resetting data outputs
+            floatOutput = "";
+            shortOutput = "";
+            intOutput = "";
+            byteOutput = "";
+
+            heightTexture = material.GetTexture("_HeightMap") as Texture2D;
+            JMARSScene scene = SceneMaterializer.singleton.selectedScene;
+
+            string[] bllonlat = scene.bottom_left.Split(", ");
+            float startlon = Convert.ToSingle(bllonlat[0]);
+            float startlat = Convert.ToSingle(bllonlat[1]);
+
+            string[] trlonlat = scene.top_right.Split(", ");
+            float endlon = Convert.ToSingle(trlonlat[0]);
+            float endlat = Convert.ToSingle(trlonlat[1]);
+
+            float scaleFactor = material.GetFloat("_scaleFactor");
+
+            lastSign = 0;
+            //1000 is an arbitary big number (we know that the user will not be THAT far away from the terrain)
+            //this for-loop steps from the starting point (player location & camera direction) and the intersection point (val_intersection)
+            //we are looking for val_intersection
+            for (float t = 0.01f; t < 100; t += step)
+            {
+                Vector3 position = ray.origin + t * ray.direction - GeoRef.transform.position;
+
+                double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)position.x, (double)position.y, (double)position.z));
+                double3 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
+
+                float cesiumHeight = (float)lonlath.z;
+                float realCesiumHeight = cesiumHeight * (float)GeoRef.scale;
+                
+                
+                float u = ((float)lonlath.x - startlon) / (endlon - startlon);
+                float v = ((float)lonlath.y - startlat) / (endlat - startlat);
+
+
+                float jmarsHeight = heightTexture.GetPixelBilinear(u, v).r;
+
+                float realheight = jmarsHeight * scaleFactor * .00001f;
+                
+                float heightdiff = realheight - realCesiumHeight;
+
+
+                if (lastSign == 0)
+                {
+                    lastSign = (int)Mathf.Sign(heightdiff);
+                }
+
+                // Detect Collision
+                if (Mathf.Abs(heightdiff) < 1 || lastSign == -((int)Mathf.Sign(heightdiff)))
+                {
+                    //if (GameState.printPerPixelCoordinates)   
+                    if (framec >= framem)
+                    {   
+                        Debug.Log("(" + u + ", " + v + ")");
+                        Debug.Log("JMARS: " + jmarsHeight);
+                        Debug.Log("Cesium: " + cesiumHeight);
+                        Debug.Log("DIFF: " + heightdiff);
+                        Debug.Log("Dist: " + t);
+
+                        //Debug.Log(GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)transform.position.x, (double)transform.position.y, (double)transform.position.z))));
+                        framec = 0;
+                    }
+                    check.position = position;
+                    break;
+                }
+        }
+    } 
 
         /// <summary>
         /// Creates raycast from user's mouse/controller to the terrain.
         /// </summary>
-        public void CalculateRay()
+        public void CalculateRayOLD()
         {
             float step = 0.025f;
             lastSign = 0;

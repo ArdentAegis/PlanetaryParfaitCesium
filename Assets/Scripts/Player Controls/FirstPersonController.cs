@@ -15,6 +15,9 @@ using UnityEditor;
 using UnityEngine.Serialization;
 using Menu = UserInterface.Menu;
 using CesiumForUnity;
+using Unity.Mathematics;
+using UnityEngine.UIElements;
+using System.Net.Sockets;
 #if ENABLE_INPUT_SYSTEM && STARTER_ASSETS_PACKAGES_CHECKED
 using UnityEngine.InputSystem;
 #endif
@@ -30,6 +33,9 @@ namespace XRControls{
     public class FirstPersonController : MonoBehaviour, DesktopControls.IPlayerActions {
 
         #region FIELDS
+        /*[Header("DEBUG")]
+        [SerializeField] Transform test;
+        */
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 4.0f;
@@ -310,17 +316,26 @@ namespace XRControls{
             {
                 speed = SettingsController.PlatformSpeed();
                 Vector3 inputDirection = transform.right * move.x + transform.forward * move.y + transform.up * move.z;
-                
-               // platform.transform.position = Vector3.MoveTowards(platform.transform.position, platform.transform.position + inputDirection.normalized * speed, speed * Time.deltaTime); 
-                
+
+                // platform.transform.position = Vector3.MoveTowards(platform.transform.position, platform.transform.position + inputDirection.normalized * speed, speed * Time.deltaTime); 
+
                 /*Vector3 cameraForward =
                     new Vector3((movePlatform.y == 0)? gameObject.GetComponentInChildren<Camera>().transform.forward.x : 0, movePlatform.y,
                         (movePlatform.y == 0) ? gameObject.GetComponentInChildren<Camera>().transform.forward.z : 0);*/
-                
+
                 //moving tiles
                 terrainTiles.transform.position = Vector3.MoveTowards(terrainTiles.transform.position, terrainTiles.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
                 // Now moves Cesium Georeference. 
                 Georeference.transform.position = Vector3.MoveTowards(Georeference.transform.position, Georeference.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
+
+
+                // Rotate the moon! 
+                /*Vector3 position = transform.position + (transform.forward * move.y + transform.right * move.x) * 1;
+                double3 lonlath = Georeference.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(
+                    Georeference.TransformUnityPositionToEarthCenteredEarthFixed(new double3(position.x, position.y, position.z)
+                        ));
+                Georeference.latitude = lonlath.y;
+                Georeference.longitude = lonlath.x;*/
             }
 
         }

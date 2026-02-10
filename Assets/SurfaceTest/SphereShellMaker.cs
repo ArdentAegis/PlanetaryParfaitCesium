@@ -152,7 +152,7 @@ namespace TerrainEngine {
             obj.AddComponent<MeshFilter>();
             obj.AddComponent<MeshRenderer>();
             
-            // Anchoring the mesh to the globe is kind of a pain at this point. 
+            // Anchoring the mesh to the globe so they rotate together (?)
             //obj.AddComponent<CesiumGlobeAnchor>();
 
             obj.GetComponent<MeshFilter>().mesh = mesh;
