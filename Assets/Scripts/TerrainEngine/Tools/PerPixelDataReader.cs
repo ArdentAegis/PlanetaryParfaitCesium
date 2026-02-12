@@ -126,9 +126,16 @@ namespace TerrainEngine.Tools
                 if (!GameState.IsVR) //desktop
                 {
                     Vector3 mousePos = Input.mousePosition;
-                    ray.origin = Camera.main.ScreenToWorldPoint(mousePos);
-                    //ray.origin = Camera.main.transform.position;
-                    ray.direction = Camera.main.transform.forward;
+                    //ray.origin = Camera.main.ScreenToWorldPoint(mousePos);
+
+                    if (Cursor.lockState == CursorLockMode.Locked)
+                    {
+                        ray.origin = Camera.main.transform.position;
+                        ray.direction = Camera.main.transform.forward;
+                    }
+                    else { 
+                        ray = Camera.main.ScreenPointToRay(mousePos);
+                    }
                 }
                 else if (GameState.IsVR) //VR
                 {
@@ -178,27 +185,40 @@ namespace TerrainEngine.Tools
 
             string[] bllonlat = scene.bottom_left.Split(", ");
             float startlon = Convert.ToSingle(bllonlat[0]);
+            // Convert from 0 -> 360 to -180 -> 180
+            if (startlon > 180)
+            {
+                startlon -= 360;
+            }
             float startlat = Convert.ToSingle(bllonlat[1]);
 
             string[] trlonlat = scene.top_right.Split(", ");
             float endlon = Convert.ToSingle(trlonlat[0]);
+            // Convert from 0 -> 360 to -180 -> 180
+            if (endlon > 180)
+            {
+                endlon -= 360;
+            }
             float endlat = Convert.ToSingle(trlonlat[1]);
 
             float scaleFactor = material.GetFloat("_scaleFactor");
-
+            
             lastSign = 0;
             //1000 is an arbitary big number (we know that the user will not be THAT far away from the terrain)
             //this for-loop steps from the starting point (player location & camera direction) and the intersection point (val_intersection)
             //we are looking for val_intersection
             for (float t = 0.01f; t < 100; t += step)
             {
-                Vector3 position = ray.origin + t * ray.direction - GeoRef.transform.position;
-
-                double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)position.x, (double)position.y, (double)position.z));
+                Vector3 position = ray.origin + t * ray.direction;
+                
+                // Georeference assumes that it is at the orgin.
+                Vector3 relPosition = position - GeoRef.transform.position;
+                
+                double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)relPosition.x, (double)relPosition.y, (double)relPosition.z));
                 double3 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
 
                 float cesiumHeight = (float)lonlath.z;
-                float realCesiumHeight = cesiumHeight * (float)GeoRef.scale;
+                //float realCesiumHeight = cesiumHeight * (float)GeoRef.scale;
                 
                 
                 float u = ((float)lonlath.x - startlon) / (endlon - startlon);
@@ -207,9 +227,9 @@ namespace TerrainEngine.Tools
 
                 float jmarsHeight = heightTexture.GetPixelBilinear(u, v).r;
 
-                float realheight = jmarsHeight * scaleFactor * .00001f;
-                
-                float heightdiff = realheight - realCesiumHeight;
+                float realheight = jmarsHeight * scaleFactor * .00001f * (float)(1d / GeoRef.scale);
+
+                float heightdiff = realheight - cesiumHeight;
 
 
                 if (lastSign == 0)
@@ -228,6 +248,7 @@ namespace TerrainEngine.Tools
                         Debug.Log("Cesium: " + cesiumHeight);
                         Debug.Log("DIFF: " + heightdiff);
                         Debug.Log("Dist: " + t);
+                        Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
 
                         //Debug.Log(GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)transform.position.x, (double)transform.position.y, (double)transform.position.z))));
                         framec = 0;
