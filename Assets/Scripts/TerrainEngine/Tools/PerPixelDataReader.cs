@@ -238,7 +238,7 @@ namespace TerrainEngine.Tools
                 }
 
                 // Detect Collision
-                if (Mathf.Abs(heightdiff) < 1 || lastSign == -((int)Mathf.Sign(heightdiff)))
+                if ((Mathf.Abs(heightdiff) < 1 || lastSign == -((int)Mathf.Sign(heightdiff)) ) && !(u < 0 || u > 1 || v < 0 || v > 1))
                 {
                     //if (GameState.printPerPixelCoordinates)   
                     if (framec >= framem)
@@ -254,9 +254,83 @@ namespace TerrainEngine.Tools
                         framec = 0;
                     }
                     check.position = position;
+                    int index = (int)MathF.Round(u * heightTexture.width + (1-v) * heightTexture.height);
+                    #region DYNAMIC_READOUT
+                    for (int i = 0; i < floatArrays.Count; i++)
+                    {
+                        if (index <= (heightTexture.width * heightTexture.height))
+                        {
+                            floatOutput += floatDataNames[i] + ": " + floatArrays[i][index] + " " + floatDataUnits[i] + "\n";
+                        }
+                        else
+                        {
+                            floatOutput = "";
+                        }
+
+                    }
+                    for (int i = 0; i < intArrays.Count; i++)
+                    {
+                        if (index <= (heightTexture.width * heightTexture.height))
+                        {
+                            intOutput += intDataNames[i] + ": " + intArrays[i][index] + " " +
+                                         intDataUnits[i] + "\n";
+                        }
+                        else
+                        {
+                            intOutput = "";
+                        }
+                    }
+                    for (int i = 0; i < byteArrays.Count; i++)
+                    {
+                        if (index <= (heightTexture.width * heightTexture.height))
+                        {
+                            byteOutput += byteDataNames[i] + ": " + byteArrays[i][index] + " " +
+                                          byteDataUnits[i] + "\n";
+                        }
+                        else
+                        {
+                            byteOutput = "";
+                        }
+                    }
+
+                    for (int i = 0; i < shortArrays.Count; i++)
+                    {
+                        if (index <= (heightTexture.width * heightTexture.height))
+                        {
+                            shortOutput += shortDataNames[i] + ": " + shortArrays[i][index] + " " +
+                                           shortDataUnits[i] + "\n";
+                        }
+                        else
+                        {
+                            shortOutput = "";
+                        }
+                    }
+                    #endregion
+                    string dataOutput = "";
+
+                    // For debugging per-pixel data
+                    int flippedZ = (int)Mathf.Round(heightTexture.height * (1-v)); //Used ONLY in print statements. Remember, the data is FLIPPED
+                    if (GameState.printPerPixelCoordinates)
+                    {
+                        imagePosition = "Index = " + index + "\n" +
+                                        "X Position = " + u * heightTexture.width + "\n" +
+                                        "Z Position = " + flippedZ + "\n";
+                        dataOutput = imagePosition + floatOutput + intOutput + byteOutput + shortOutput;
+                    }
+                    else
+                    {
+                        dataOutput = floatOutput + intOutput + byteOutput + shortOutput;
+                    }
+
+                    //placing pins
+                    if (Input.GetMouseButtonDown(1) || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
+                    {
+                        SpawnPin(position, dataOutput, SceneDownloader.singleton.guid);
+                        printOnce = true;
+                    }
                     break;
                 }
-        }
+            }
     } 
 
         /// <summary>
