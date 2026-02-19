@@ -227,9 +227,9 @@ namespace TerrainEngine.Tools
 
                 float jmarsHeight = heightTexture.GetPixelBilinear(u, v).r;
 
-                float realheight = jmarsHeight * scaleFactor * .00001f * (float)(1d / GeoRef.scale);
+                float visualheight = jmarsHeight * scaleFactor * .00001f * (float)(1d / GeoRef.scale);
 
-                float heightdiff = realheight - cesiumHeight;
+                float heightdiff = visualheight - cesiumHeight;
 
 
                 if (lastSign == 0)
@@ -244,10 +244,10 @@ namespace TerrainEngine.Tools
                     if (framec >= framem)
                     {   
                         Debug.Log("(" + u + ", " + v + ")");
-                        Debug.Log("JMARS: " + jmarsHeight);
-                        Debug.Log("Cesium: " + cesiumHeight);
-                        Debug.Log("DIFF: " + heightdiff);
-                        Debug.Log("Dist: " + t);
+                        Debug.Log("JMARS: " + SceneDownloader.singleton.realHeight.GetPixelBilinear(u, v).r);
+                        //Debug.Log("Cesium: " + cesiumHeight);
+                        //Debug.Log("DIFF: " + heightdiff);
+                        //Debug.Log("Dist: " + t);
                         Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
 
                         //Debug.Log(GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)transform.position.x, (double)transform.position.y, (double)transform.position.z))));

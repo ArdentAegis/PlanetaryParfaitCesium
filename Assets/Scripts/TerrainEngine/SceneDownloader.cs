@@ -60,6 +60,7 @@ namespace TerrainEngine
         private Texture2D _thumbnailImg;
         [HideInInspector] public float[] heightData;
 
+        [HideInInspector] public Texture2D realHeight;
         [HideInInspector] public Texture2D _texture;
         [HideInInspector] public float _heightOffset; //95th percentile of height
         [HideInInspector] public float _heightRange; //range from bottom to top of heightmap values
@@ -127,6 +128,7 @@ namespace TerrainEngine
 
         private void Awake()
         {
+            realHeight = new Texture2D(0, 0);
             singleton = this;
             //Every player is spawned with a unique GUID at the start of game
             //These guids can be used for specifying multiplayer players easily via RPCs
@@ -517,6 +519,8 @@ namespace TerrainEngine
             var max = floatArray.Max();
             var min = floatArray.Min();
             var mid = (max + min) / 2;
+            
+            float[] realArray = (float[])floatArray.Clone();
 
             for (int i = 0; i < floatArray.Length; i++)
             {
@@ -528,6 +532,14 @@ namespace TerrainEngine
 
             _texture.LoadRawTextureData(newnewpixels);
             _texture.Apply();
+
+            byte[] realByteArray = new byte[realArray.Length * 4];
+            Buffer.BlockCopy(realArray, 0, realByteArray, 0, realByteArray.Length);
+
+            realHeight = new Texture2D(width, height, TextureFormat.RFloat, false);
+            realHeight.LoadRawTextureData(realByteArray);
+            realHeight.Apply();
+
             return _texture;
         }
 
@@ -574,6 +586,7 @@ namespace TerrainEngine
             var min = floatArray.Min();
             var mid = (max + min) / 2;
 
+            float[] realArray = (float[])floatArray.Clone();
             for (int i = 0; i < floatArray.Length; i++)
             {
                 floatArray[i] += -mid;
@@ -587,6 +600,15 @@ namespace TerrainEngine
             _texture = new Texture2D(width, height, TextureFormat.RFloat, false);
             _texture.LoadRawTextureData(floatByteArray);
             _texture.Apply();
+
+            byte[] realByteArray = new byte[realArray.Length * 4];
+            Buffer.BlockCopy(realArray, 0, realByteArray, 0, realByteArray.Length);
+            
+            realHeight = new Texture2D(width, height, TextureFormat.RFloat, false);
+            realHeight.LoadRawTextureData(realByteArray);
+            realHeight.Apply();
+
+            
             return _texture;
         }
 
