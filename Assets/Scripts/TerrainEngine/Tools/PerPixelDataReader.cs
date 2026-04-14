@@ -91,7 +91,7 @@ namespace TerrainEngine.Tools
         {
             singleton = this;
             pinList = new List<Pin>();
-
+            readingData = false;
             if (GameState.IsVR)
             {
                 controlCheck = GameObject.FindGameObjectWithTag("Player").GetComponent<XRController>();
@@ -204,9 +204,7 @@ namespace TerrainEngine.Tools
             float scaleFactor = material.GetFloat("_scaleFactor");
             
             lastSign = 0;
-            //1000 is an arbitary big number (we know that the user will not be THAT far away from the terrain)
-            //this for-loop steps from the starting point (player location & camera direction) and the intersection point (val_intersection)
-            //we are looking for val_intersection
+
             for (float t = 0.01f; t < 100; t += step)
             {
                 Vector3 position = ray.origin + t * ray.direction;
@@ -331,6 +329,7 @@ namespace TerrainEngine.Tools
                     break;
                 }
             }
+            //*/
     } 
 
         /// <summary>
