@@ -37,6 +37,7 @@ namespace TerrainEngine.Tools
         [SerializeField] private GameObject pinInfoPrefab;
         [SerializeField] private GameObject pinPrefab;
         [SerializeField] private GameObject platform;
+        private bool pinReady;
 
         // Terrain variables
         public GameObject terrain; // Tiles object
@@ -101,26 +102,37 @@ namespace TerrainEngine.Tools
             }
 
             heightTexture = material.GetTexture("_HeightMap") as Texture2D;
+
+            pinReady = false;
         }
 
-        private void FixedUpdate()
+        private void Update()
         {
-            frameCount++;
+            if (Input.GetMouseButtonDown(1)){
+                pinReady = true;
+            }
+
             if (pinList.Count != 0)
             {
                 //Ensure Pin Info follows the pins
                 for (int i = 0; i < pinList.Count; i++)
                 {
                     //ensures pins follow terrain, even if exaggeration changes
-                    pinList[i].pin.transform.position = terrain.transform.TransformPoint(pinList[i].position);
+                    pinList[i].pin.transform.position = terrain.transform.TransformPoint(pinList[i].offset);
                     pinList[i].panel.transform.position = new Vector3(pinList[i].pin.transform.position.x,
-                        pinList[i].pin.transform.position.y + 4.5f,
+                        pinList[i].pin.transform.position.y + 4,
                         pinList[i].pin.transform.position.z);
                     pinList[i].panel.transform.localScale = new Vector3(-1, 1, 1);
                     pinList[i].panel.transform.LookAt(platform.transform); // rotate to platform so it always faces user
 
                 }
             }
+
+        }
+
+        private void FixedUpdate()
+        {
+            frameCount++;
 
             //Per Pixel Data Button in scene; user has Per Pixel tool enabled if readingData=true
             if (readingData)
@@ -300,10 +312,11 @@ namespace TerrainEngine.Tools
                 }
 
                 //placing pins
-                if (Input.GetMouseButtonDown(1) || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
+                if (pinReady || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
                 {
                     SpawnPin(position, dataOutput, SceneDownloader.singleton.guid);
                     printOnce = true;
+                    pinReady = false;
                 }
             }
             
@@ -608,18 +621,20 @@ namespace TerrainEngine.Tools
         public Pin CreatePin(Vector3 position, string data)
         {
             GameObject debugSphere = Instantiate(pinPrefab);
-            Vector3 debugSphereTransform = terrain.transform.TransformPoint(position);
+            Vector3 offset = terrain.transform.InverseTransformPoint(position);
+            Vector3 debugSphereTransform = terrain.transform.TransformPoint(offset);
             debugSphere.transform.localPosition = debugSphereTransform;
             debugSphere.transform.localScale = Vector3.one * 0.5f;
 
             GameObject newPinCanvas = Instantiate(pinInfoPrefab);
             newPinCanvas.transform.position = new Vector3(debugSphereTransform.x,
-                debugSphereTransform.y + 5, debugSphereTransform.z);
+                debugSphereTransform.y + 4, debugSphereTransform.z);
             
             Pin _pin = newPinCanvas.GetComponent<Pin>();   
             _pin.pin = debugSphere;
             _pin.panel = newPinCanvas;
             _pin.position = position;
+            _pin.offset = offset;
             
             // change text on prefab
             _pin.number = (pinList.Count + 1).ToString();

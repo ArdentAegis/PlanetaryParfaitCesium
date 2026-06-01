@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 145402360263601081}
   - component: {fileID: 7916985840742998998}
   - component: {fileID: 1600522491598751504}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: networkPinPrefab
   m_TagString: NetworkObject
   m_Icon: {fileID: 0}
@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 6577921091541287787}
   - component: {fileID: 5378229814554575783}
   - component: {fileID: 6983455369963566533}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -272,6 +272,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Pin
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3dd4ab973538ade478aa4a8ce9b881a1,
+        type: 3}
+      propertyPath: m_Layer
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3dd4ab973538ade478aa4a8ce9b881a1, type: 3}

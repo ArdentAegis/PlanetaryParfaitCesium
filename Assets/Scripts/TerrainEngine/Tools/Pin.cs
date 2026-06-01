@@ -23,6 +23,7 @@ namespace TerrainEngine.Tools
         public string data = ""; //list of data
 
         [Header("Pin Location")] public Vector3 position;
+        [Header("Pin Offset from Terrain")] public Vector3 offset;
 
         [Header("Multiuser")] 
         public ulong clientID = 0; // client who placed pin
