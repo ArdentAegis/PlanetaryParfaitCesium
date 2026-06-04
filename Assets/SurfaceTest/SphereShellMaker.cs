@@ -30,9 +30,16 @@ namespace TerrainEngine {
         private GameObject surface;
         [SerializeField] public CesiumGeoreference GeoRef;
         //[SerializeField] public Vector3 GeoRefPosition;
+
+        const float flatteningFactor = (1738100.0f-1736000.0f)/1738100.0f;
+
         Vector3 getSpherePostion(double lon, double lat)
         {
             if (lon < -180) { lon = 360 + lon; }
+
+            // Geodetic to Geocentric latitude correction
+            lat = (double)(180 / Math.PI * MathF.Atan((1-flatteningFactor)*(1-flatteningFactor) * (float)Math.Tan((double)(lat * Math.PI / 180))));
+
             double3 lonlath = new double3(lon, lat, surfaceHeight);
             double3 ecef = ellipsoid.LongitudeLatitudeHeightToCenteredFixed(lonlath);
             double3 d3pos = GeoRef.TransformEarthCenteredEarthFixedPositionToUnity(ecef);

@@ -47,7 +47,9 @@ namespace TerrainEngine.Tools
         // Terrain Intersection Variables
         private Ray ray;
 
+        // Coordinate Variables
         private double3 lonlath = new double3(0,0,0);
+        const float flatteningFactor = (1738100.0f-1736000.0f)/1738100.0f;
 
         /// <summary>
         /// Determines if the ray has made an intersection with the terrain. +1 if positive, -1 if negative
@@ -120,7 +122,7 @@ namespace TerrainEngine.Tools
                     //ensures pins follow terrain, even if exaggeration changes
                     pinList[i].pin.transform.position = terrain.transform.TransformPoint(pinList[i].offset);
                     pinList[i].panel.transform.position = new Vector3(pinList[i].pin.transform.position.x,
-                        pinList[i].pin.transform.position.y + 4,
+                        pinList[i].pin.transform.position.y + 4.5f,
                         pinList[i].pin.transform.position.z);
                     pinList[i].panel.transform.localScale = new Vector3(-1, 1, 1);
                     pinList[i].panel.transform.LookAt(platform.transform); // rotate to platform so it always faces user
@@ -186,9 +188,6 @@ namespace TerrainEngine.Tools
 
         public void CalculateRay()
         {
-            float step = 0.01f;
-            lastSign = 0;
-
             //resetting data outputs
             floatOutput = "";
             shortOutput = "";
@@ -216,10 +215,6 @@ namespace TerrainEngine.Tools
             }
             float endlat = Convert.ToSingle(trlonlat[1]);
 
-            float scaleFactor = material.GetFloat("_scaleFactor");
-            
-            lastSign = 0;
-
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit, 1000f)) {
                 
@@ -232,6 +227,9 @@ namespace TerrainEngine.Tools
                 double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)relPosition.x, (double)relPosition.y, (double)relPosition.z));
                 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
 
+                // Geocentric to Geodetic latitude correction
+                lonlath.y = (double)(180 / Math.PI * MathF.Atan((float)Math.Tan(lonlath.y * Math.PI / 180)/((1-flatteningFactor)*(1-flatteningFactor))));
+
                 float u = ((float)lonlath.x - startlon) / (endlon - startlon);
                 float v = ((float)lonlath.y - startlat) / (endlat - startlat);
 
@@ -239,7 +237,7 @@ namespace TerrainEngine.Tools
                 if (frameCount >= frameMax)
                 {   
                     // Debug.Log("(" + u + ", " + v + ")");
-                    // Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
+                    Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
                     frameCount = 0;
                 }
                 
@@ -319,7 +317,12 @@ namespace TerrainEngine.Tools
                     pinReady = false;
                 }
             }
-            
+
+            // float step = 0.01f;
+            // lastSign = 0;
+
+            // float scaleFactor = material.GetFloat("_scaleFactor");
+
             // for (float t = 0.01f; t < 100; t += step)
             // {
             //     Vector3 position = ray.origin + t * ray.direction;

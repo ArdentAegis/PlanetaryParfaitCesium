@@ -69,6 +69,10 @@ namespace TerrainEngine
                 if (quads.Count < layers.Count) {
                     for (var i = quads.Count; i < layers.Count; i++) {
                         var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+
+                        var collider = quad.GetComponent<MeshCollider>();
+                        Destroy(collider);
+
                         var mesh = quad.GetComponent<MeshRenderer>();
                         mesh.material = new Material(Shader.Find("UI/Default"));
                         quad.transform.parent = gameObject.transform;

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Button = UnityEngine.UI.Button;
+using CesiumForUnity;
 
 namespace UserInterface
 {
@@ -23,6 +24,9 @@ namespace UserInterface
         #endregion
 
         #region VARIABLES
+
+        [Header("Cesium Integration")]
+        public CesiumGeoreference Georeference;
         
         [Header("Tab/Shift Icons")]
         public Image tabImg;
@@ -144,6 +148,7 @@ namespace UserInterface
             resetPosition.onClick.AddListener(delegate
             {
                 SceneMaterializer.singleton.terrain.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
+                Georeference.transform.position = Vector3.zero;
             });
             
             helpButton.onClick.AddListener(delegate
