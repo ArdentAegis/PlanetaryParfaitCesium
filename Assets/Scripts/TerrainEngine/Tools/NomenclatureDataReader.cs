@@ -5,6 +5,9 @@ using System.Data;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
+using CesiumForUnity;
+using Unity.Mathematics;
+using TerrainEngine;
 
 namespace TerrainEngine.Tools
 {
@@ -12,6 +15,8 @@ namespace TerrainEngine.Tools
     {
         #region FIELDS
         public static NomenclatureDataReader singleton;
+
+        public SphereShellMaker sphereShellMaker;
         
         public List<Nomenclature> nomenclaturePins;
         public GameObject nomenclatureParent;
@@ -19,6 +24,7 @@ namespace TerrainEngine.Tools
         public GameObject nomenclaturePrefab;
         public bool hasNomenclature = false;
 
+        public CesiumGeoreference georeference;
         public GameObject terrain;
         public Material material;
         public GameObject platform;
@@ -39,7 +45,7 @@ namespace TerrainEngine.Tools
             {
                 foreach (var nom in nomenclaturePins)
                 {
-                    nom.pin.transform.position = terrain.transform.TransformPoint(nom.position);
+                    nom.pin.transform.position = terrain.transform.TransformPoint(nom.offset);
                     nom.panel.transform.localScale = new Vector3(-1, 1, 1);
                     nom.panel.transform.LookAt(platform.transform);
                 }
@@ -55,21 +61,37 @@ namespace TerrainEngine.Tools
         /// <param name="data">Nomenclature Layer Data</param>
         public void InstantiateNomenclature(JMARSScene.Layer.LayerData data)
         {
+            material = SceneMaterializer.singleton.activeMaterial;
+            terrain = SceneMaterializer.singleton.activeTiles;
+
             Texture2D heightTexture = material.GetTexture("_HeightMap") as Texture2D;
             
             foreach (var values in data.text_data)
             {
-                // get (x, z) position in world space from texture space
-                float x_position = ((float)values.x / heightTexture.width)-0.5f;
-                float z_position = ((float)(values.y - heightTexture.height)/heightTexture.height)+0.5f;
-                
-                //get height value at (x, y) from depth texture
-                float heightValue = heightTexture.GetPixel((int)values.x, (int)(heightTexture.height - values.y)).r;
-                float h_t = heightValue * material.GetFloat("_scaleFactor"); 
-                
-                // (x, y, z) position of nomenclature in world space
-                Vector3 position = new Vector3(x_position, h_t, z_position);
-                Vector3 newPosition = terrain.transform.TransformPoint(position);
+                Vector3 newPosition;
+
+                if (SceneMaterializer.singleton.useCesium)
+                {
+                    double2 lonlat = sphereShellMaker.PixelCoordinatesToLonLat(values.x, values.y, heightTexture);
+                    newPosition = sphereShellMaker.GetSpherePosition(lonlat.x, lonlat.y);
+                }
+
+                else
+                {
+                    // get (x, z) position in world space from texture space
+                    float x_position = ((float)values.x / heightTexture.width)-0.5f;
+                    float z_position = ((float)(values.y - heightTexture.height)/heightTexture.height)+0.5f;
+                    
+                    //get height value at (x, y) from depth texture
+                    float heightValue = heightTexture.GetPixel((int)values.x, (int)(heightTexture.height - values.y)).r;
+                    float h_t = heightValue * material.GetFloat("_scaleFactor"); 
+                    
+                    // (x, y, z) position of nomenclature in world space
+                    Vector3 position = new Vector3(x_position, h_t, z_position);
+                    newPosition = terrain.transform.TransformPoint(position);
+                }
+
+                Vector3 offset = terrain.transform.InverseTransformPoint(newPosition);
                 
                 // instantiate pin obj
                 GameObject pin = Instantiate(pinPrefab, nomenclatureParent.transform, true);
@@ -87,7 +109,8 @@ namespace TerrainEngine.Tools
                 n.panel = panel;
                 n.SetText(values.name);
                 n.SetMaterials();
-                n.position = position;
+                n.position = newPosition;
+                n.offset = offset;
                 nomenclaturePins.Add(n);
             }
 

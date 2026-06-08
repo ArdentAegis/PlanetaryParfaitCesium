@@ -951,7 +951,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!114 &6170800512551653135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -973,6 +973,7 @@ MonoBehaviour:
 
 '
   position: {x: 0, y: 0, z: 0}
+  offset: {x: 0, y: 0, z: 0}
   clientID: 0
   guid: 
 --- !u!114 &2931086374470027328

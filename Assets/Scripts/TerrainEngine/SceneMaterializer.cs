@@ -20,14 +20,22 @@ namespace TerrainEngine{
         public float UnityUnitPerMeter;
         public Slider exaggerationSlider;
 
-        [SerializeField] public Material heightMaterial;
         [HideInInspector] public JMARSScene selectedScene;
 
-        public GameObject terrain;
+        public Material shellMat;
+        public Material heightMat;
+        public Material activeMaterial;
+
+        public GameObject cesiumTiles;
         public GameObject tiles;
+        public GameObject activeTiles;
+
+        public GameObject terrain;
         public Vector3 terrainStartingPosition;
 
         [SerializeField] private DataPackBehaviour startingTerrain;
+
+        public bool useCesium = false;
         #endregion
 
 
@@ -35,7 +43,7 @@ namespace TerrainEngine{
         private void Start()
         {
             singleton = this;
-            terrainStartingPosition = new Vector3(-1f, -5f, 0f);
+            terrainStartingPosition = Vector3.zero;
 
             StartCoroutine(LoadStartingTerrain(startingTerrain));
         }
@@ -57,6 +65,25 @@ namespace TerrainEngine{
 
 
         #region METHODS
+
+        public void ActiveTileSwitcher()
+        {
+            if (SceneMaterializer.singleton.useCesium)
+            {
+                cesiumTiles.SetActive(true);
+                tiles.SetActive(false);
+                activeMaterial = shellMat;
+                activeTiles = cesiumTiles;
+            }
+
+            else
+            {
+                cesiumTiles.SetActive(false);
+                tiles.SetActive(true);
+                activeMaterial = heightMat;
+                activeTiles = tiles;
+            }
+        }
 
         public void SetMaterials(JMARSScene scene) {
             TerrainColorTextureProvider.singleton.RemoveOldLayers(); //Remove old layers from TerrainTextureProvider
@@ -109,17 +136,17 @@ namespace TerrainEngine{
             //Debug.Log(exaggeration + "*" + scaledHeight);
 
             //Debug.Log("DepthTexture: " +(scene.depthTexture == null ? "null" : "not null"));
-            heightMaterial.SetTexture("_HeightMap", scene.depthTexture);
+            activeMaterial.SetTexture("_HeightMap", scene.depthTexture);
             //print("FIRST PIXEL = " + scene.depthTexture.GetPixel(0,0).r);
             
-            heightMaterial.SetTexture("_MainTex", TerrainColorTextureProvider.singleton.texture, RenderTextureSubElement.Default);
-            heightMaterial.SetFloat("_length", 1f * scene.depthTexture.height);
-            heightMaterial.SetFloat("_width", 1f * scene.depthTexture.width);
-            heightMaterial.SetFloat("_scaleFactor", -(float)exaggeration * 0.001f); 
+            activeMaterial.SetTexture("_MainTex", TerrainColorTextureProvider.singleton.texture, RenderTextureSubElement.Default);
+            activeMaterial.SetFloat("_length", 1f * scene.depthTexture.height);
+            activeMaterial.SetFloat("_width", 1f * scene.depthTexture.width);
+            activeMaterial.SetFloat("_scaleFactor", -(float)exaggeration * 0.001f); 
 
             //changes terrain transform so it always spawns below the player
-            float heightValue = scene.depthTexture.GetPixel(scene.depthTexture.width/2, scene.depthTexture.height/2).r * heightMaterial.GetFloat("_scaleFactor");
-            tiles.transform.localPosition = new Vector3(0, -heightValue, 0);
+            float heightValue = scene.depthTexture.GetPixel(scene.depthTexture.width/2, scene.depthTexture.height/2).r * activeMaterial.GetFloat("_scaleFactor");
+            activeTiles.transform.localPosition = new Vector3(0, -heightValue, 0);
             
             //Debug.Log("exag" + exaggeration + "scaledHeight"+scaledHeight+ "scaleFactor" + -(float)exaggeration * 0.001f * scaledHeight);
             //Sets the transparency value based on what is stored on JMARS' servers
@@ -135,7 +162,7 @@ namespace TerrainEngine{
         /// TO-DO: We should probably turn this into a shader later on....
         /// </summary>
         private void UpdateColor() {
-            heightMaterial.SetTexture("_MainTex", TerrainColorTextureProvider.singleton.texture, RenderTextureSubElement.Default);
+            activeMaterial.SetTexture("_MainTex", TerrainColorTextureProvider.singleton.texture, RenderTextureSubElement.Default);
         }
 
         #endregion

@@ -24,6 +24,8 @@ namespace TerrainEngine
     /// </summary>
     public class SceneDownloader : MonoBehaviour
     {
+        public GameObject cesiumMoon;
+
         public List<Texture2D> datalayertextures;
         public int imageWidth;
         public int imageHeight;
@@ -101,15 +103,27 @@ namespace TerrainEngine
                     StartCoroutine(ChangeState(SceneSession.READY));
                     break;
                 case SceneSession.READY:
+                    if (scene.body == "Luna")
+                    {
+                        SceneMaterializer.singleton.useCesium = true;
+                        cesiumMoon.SetActive(true);
+                    }
+                    else
+                    {
+                        SceneMaterializer.singleton.useCesium = false;
+                        cesiumMoon.SetActive(false);
+                    }
+
+                    SceneMaterializer.singleton.ActiveTileSwitcher();
                     SceneMaterializer.singleton.SetMaterials(scene);
                     SceneMaterializer.singleton.selectedScene = scene;
 
-                    if (SceneMaterializer.singleton.tiles.GetComponent<SphereShellMaker>() != null)
+                    if (SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>() != null)
                     {
                         // Calling the sphere shell creation function here. 
-                        SceneMaterializer.singleton.tiles.GetComponent<SphereShellMaker>().MakeSurface();
+                        SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface();
                     }
-                    //if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
+                    if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
                     
                     InfoPanel.Panel.UpdateInfo(scene);
                     ScaleBar.singleton.CalculatePrefabs(scene);

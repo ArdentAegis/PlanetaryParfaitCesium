@@ -33,7 +33,20 @@ namespace TerrainEngine {
 
         const float flatteningFactor = (1738100.0f-1736000.0f)/1738100.0f;
 
-        Vector3 getSpherePostion(double lon, double lat)
+        private string[] bllonlat;
+        private double startlon;
+        private double startlat;
+
+        private string[] trlonlat;
+        private double endlon;
+        private double endlat;
+        
+        private double londist;
+        private double latdist;
+
+        public double2 cesiumStartingLonLat;
+
+        public Vector3 GetSpherePosition(double lon, double lat)
         {
             if (lon < -180) { lon = 360 + lon; }
 
@@ -41,10 +54,42 @@ namespace TerrainEngine {
             lat = (double)(180 / Math.PI * MathF.Atan((1-flatteningFactor)*(1-flatteningFactor) * (float)Math.Tan((double)(lat * Math.PI / 180))));
 
             double3 lonlath = new double3(lon, lat, surfaceHeight);
-            double3 ecef = ellipsoid.LongitudeLatitudeHeightToCenteredFixed(lonlath);
+            double3 ecef = GeoRef.ellipsoid.LongitudeLatitudeHeightToCenteredFixed(lonlath);
             double3 d3pos = GeoRef.TransformEarthCenteredEarthFixedPositionToUnity(ecef);
             Vector3 v3pos = new Vector3((float)d3pos.x, (float)d3pos.y, (float)d3pos.z);
             return v3pos;
+        }
+
+        public double2 PixelCoordinatesToLonLat(double x, double y, Texture2D heightTexture)
+        {
+            float u = (float)x / heightTexture.width;
+            float v = (float)y / heightTexture.height;
+
+            double lon = (double)(u * londist) + startlon;
+            double lat = (double)((1-v) * latdist) + startlat;
+
+            return new double2(lon, lat);
+        }
+
+        private void SetCoordinatesVariables()
+        {
+            bllonlat = scene.bottom_left.Split(", ");
+            startlon = Convert.ToDouble(bllonlat[0]);
+            startlat = Convert.ToDouble(bllonlat[1]);
+
+            trlonlat = scene.top_right.Split(", ");
+            endlon = Convert.ToDouble(trlonlat[0]);
+            endlat = Convert.ToDouble(trlonlat[1]);
+            
+            londist = endlon - startlon;
+            if (startlon > endlon) {
+                londist += 360;
+            }
+            latdist = endlat - startlat;
+            if (startlat > endlat)
+            {
+                latdist += 180;
+            }
         }
 
         private void MakeVertices()
@@ -55,23 +100,7 @@ namespace TerrainEngine {
             uvs = new Vector2[length, width];
 
             // Coordinates! 
-            string[] bllonlat = scene.bottom_left.Split(", ");
-            double startlon = Convert.ToDouble(bllonlat[0]);
-            double startlat = Convert.ToDouble(bllonlat[1]);
-
-            string[] trlonlat = scene.top_right.Split(", ");
-            double endlon = Convert.ToDouble(trlonlat[0]);
-            double endlat = Convert.ToDouble(trlonlat[1]);
-            
-            double londist = endlon - startlon;
-            if (startlon > endlon) {
-                londist += 360;
-            }
-            double latdist = endlat - startlat;
-            if (startlat > endlat)
-            {
-                latdist += 180;
-            }
+            SetCoordinatesVariables();
 
             //Debug.Log("Latitude: (" + startlat + ", " + endlat + ")");
             //Debug.Log("Longitude: (" + startlon + ", " + endlon + ")");
@@ -91,7 +120,7 @@ namespace TerrainEngine {
                     double lon = (startlon + (j / (width - 1d)) * (londist))%360;
                     //Debug.Log(lat + ", " + lon);
                     // Get the position on the sphere for the vertex
-                    vertices[i, j] = getSpherePostion(lon, lat);
+                    vertices[i, j] = GetSpherePosition(lon, lat);
                     
                     // Get the vector pointing outwards from the center of the sphere (Letting Unity figure out normals right now)
                     //normals[i, j] = (vertices[i,j] - GeoRefPosition).normalized;
@@ -127,10 +156,11 @@ namespace TerrainEngine {
             double lat = Convert.ToDouble(scene.scene_center_lat);
             double lon = Convert.ToDouble(scene.scene_center_lon) * -1;
             if (lon < -180) { lon = 360 + lon; }
+            cesiumStartingLonLat = new double2(lon, lat);
             GeoRef.SetOriginLongitudeLatitudeHeight(lon, lat, 0);
 
-            //Instantiate(Instance, getSpherePostion(lon, lat), Quaternion.identity, this.transform);
-            //Instantiate(Instance, getSpherePostion(startlon, startlat), Quaternion.identity, this.transform);
+            //Instantiate(Instance, GetSpherePosition(lon, lat), Quaternion.identity, this.transform);
+            //Instantiate(Instance, GetSpherePosition(startlon, startlat), Quaternion.identity, this.transform);
             MakeVertices();
         
             Destroy(surface);

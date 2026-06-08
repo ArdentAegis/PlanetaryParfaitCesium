@@ -103,8 +103,6 @@ namespace TerrainEngine.Tools
                 controlCheck = GameObject.FindGameObjectWithTag("Player").GetComponent<XRController>();
             }
 
-            heightTexture = material.GetTexture("_HeightMap") as Texture2D;
-
             pinReady = false;
         }
 
@@ -120,7 +118,7 @@ namespace TerrainEngine.Tools
                 for (int i = 0; i < pinList.Count; i++)
                 {
                     //ensures pins follow terrain, even if exaggeration changes
-                    pinList[i].pin.transform.position = terrain.transform.TransformPoint(pinList[i].offset);
+                    pinList[i].pin.transform.position = SceneMaterializer.singleton.activeTiles.transform.TransformPoint(pinList[i].offset);
                     pinList[i].panel.transform.position = new Vector3(pinList[i].pin.transform.position.x,
                         pinList[i].pin.transform.position.y + 4.5f,
                         pinList[i].pin.transform.position.z);
@@ -174,7 +172,13 @@ namespace TerrainEngine.Tools
                 {
                     // Set text & calculate user's raycast to terrain
                     TerrainTools.DynamicReadout("Per Pixel Data", imagePosition + floatOutput + shortOutput + intOutput + byteOutput);
-                    CalculateRay();
+                    if (SceneMaterializer.singleton.useCesium){
+                        CalculateRayCesium();
+                    }
+                    else
+                    {
+                        CalculateRay();
+                    }
                 }
 
             }
@@ -186,7 +190,7 @@ namespace TerrainEngine.Tools
 
         #region METHODS
 
-        public void CalculateRay()
+        public void CalculateRayCesium()
         {
             //resetting data outputs
             floatOutput = "";
@@ -194,7 +198,7 @@ namespace TerrainEngine.Tools
             intOutput = "";
             byteOutput = "";
 
-            heightTexture = material.GetTexture("_HeightMap") as Texture2D;
+            heightTexture = SceneMaterializer.singleton.activeMaterial.GetTexture("_HeightMap") as Texture2D;
             JMARSScene scene = SceneMaterializer.singleton.selectedScene;
 
             string[] bllonlat = scene.bottom_left.Split(", ");
@@ -454,8 +458,10 @@ namespace TerrainEngine.Tools
         /// <summary>
         /// Creates raycast from user's mouse/controller to the terrain.
         /// </summary>
-        public void CalculateRayOLD()
+        public void CalculateRay()
         {
+            heightTexture = SceneMaterializer.singleton.activeMaterial.GetTexture("_HeightMap") as Texture2D;
+
             float step = 0.025f;
             lastSign = 0;
             
@@ -471,12 +477,10 @@ namespace TerrainEngine.Tools
             for (float t = 0.01f; t < 1000; t += step)
             {
                 //changing ray coordinates to terrain corrdiantes
-                Vector3 ray_origin_terrain = terrain.transform.InverseTransformPoint(ray.origin);
-                Vector3 ray_origin_terrain2 = terrain.transform.InverseTransformPoint(ray.origin + ray.direction);
+                Vector3 ray_origin_terrain = SceneMaterializer.singleton.activeTiles.transform.InverseTransformPoint(ray.origin);
+                Vector3 ray_origin_terrain2 = SceneMaterializer.singleton.activeTiles.transform.InverseTransformPoint(ray.origin + ray.direction);
                 Vector3 ray_direction_terrain = ray_origin_terrain2 - ray_origin_terrain;
                 Vector3 ray_t = ray_origin_terrain + (ray_direction_terrain * t); //t is the distance of the ray
-
-                heightTexture = material.GetTexture("_HeightMap") as Texture2D;
 
                 //out of bounds conditions
                 if (ray_t.x > 0.5f || ray_t.x < -0.5f || ray_t.z > 0.5f || ray_t.z < -0.5f) return;
@@ -491,7 +495,7 @@ namespace TerrainEngine.Tools
                 // Multiplied by 1e-5 to account for the factor added to the shell material shader. 
                 //float h_t = heightValue * material.GetFloat("_scaleFactor") * -1f * .00001f; //scales heightvalue by current exag value
 
-                float h_t = heightValue * material.GetFloat("_scaleFactor") * .00001f;
+                float h_t = heightValue * SceneMaterializer.singleton.activeMaterial.GetFloat("_scaleFactor") * .00001f;
                 float ht_minus_rty = (h_t - ray_t.y);
                 
                 //determines if (x, z) position is in bounds
@@ -506,6 +510,8 @@ namespace TerrainEngine.Tools
                 // found intersection
                 if (ht_minus_rty == 0 || lastSign == -(Mathf.Sign(ht_minus_rty)))
                 {
+                    check.position = SceneMaterializer.singleton.activeTiles.transform.TransformPoint(ray_t);
+
                     #region DYNAMIC_READOUT
                     for (int i = 0; i < floatArrays.Count; i++)
                     {
@@ -575,10 +581,11 @@ namespace TerrainEngine.Tools
                     }
                     
                     //placing pins
-                    if (Input.GetMouseButtonDown(1) || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
+                    if (pinReady || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
                     {
                         SpawnPin(ray_t, dataOutput, SceneDownloader.singleton.guid);
                         printOnce = true; 
+                        pinReady = false;
                     }
 
                     break;
@@ -624,8 +631,20 @@ namespace TerrainEngine.Tools
         public Pin CreatePin(Vector3 position, string data)
         {
             GameObject debugSphere = Instantiate(pinPrefab);
-            Vector3 offset = terrain.transform.InverseTransformPoint(position);
-            Vector3 debugSphereTransform = terrain.transform.TransformPoint(offset);
+            Vector3 offset = Vector3.zero;
+            Vector3 debugSphereTransform;
+
+            if (SceneMaterializer.singleton.useCesium)
+            {
+                offset = SceneMaterializer.singleton.activeTiles.transform.InverseTransformPoint(position);
+                debugSphereTransform = SceneMaterializer.singleton.activeTiles.transform.TransformPoint(offset);
+            }
+            else
+            {
+                debugSphereTransform = SceneMaterializer.singleton.activeTiles.transform.TransformPoint(position);
+                offset = position;
+            }
+            
             debugSphere.transform.localPosition = debugSphereTransform;
             debugSphere.transform.localScale = Vector3.one * 0.5f;
 

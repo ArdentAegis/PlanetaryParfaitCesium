@@ -15,7 +15,8 @@ namespace TerrainEngine.Tools
         [Header("Pin Objects")]
         public GameObject pin;
         public GameObject panel;
-        public Vector3 position;
+        [Header("Nomenclature Location")] public Vector3 position;
+        [Header("Nomenclature Offset from Terrain")] public Vector3 offset;
         
         [Header("Pin Components")]
         public Image panelImage;

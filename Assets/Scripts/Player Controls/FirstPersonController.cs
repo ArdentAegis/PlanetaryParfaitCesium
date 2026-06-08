@@ -317,25 +317,31 @@ namespace XRControls{
                 speed = SettingsController.PlatformSpeed();
                 Vector3 inputDirection = transform.right * move.x + transform.forward * move.y + transform.up * move.z;
 
-                // platform.transform.position = Vector3.MoveTowards(platform.transform.position, platform.transform.position + inputDirection.normalized * speed, speed * Time.deltaTime); 
+                if (SceneMaterializer.singleton.useCesium)
+                {
+                    // moves Cesium Georeference vertically
+                    Vector3 verticalInput = new Vector3(0, inputDirection.y, 0);
+                    Georeference.transform.position = Vector3.MoveTowards(Georeference.transform.position, Georeference.transform.position - verticalInput * speed, speed * Time.deltaTime);
 
-                /*Vector3 cameraForward =
-                    new Vector3((movePlatform.y == 0)? gameObject.GetComponentInChildren<Camera>().transform.forward.x : 0, movePlatform.y,
-                        (movePlatform.y == 0) ? gameObject.GetComponentInChildren<Camera>().transform.forward.z : 0);*/
+                    // rotates the Moon 
+                    Vector3 position = platform.transform.position + inputDirection.normalized * speed * Time.deltaTime;
+                    double3 lonlath = Georeference.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(
+                        Georeference.TransformUnityPositionToEarthCenteredEarthFixed(new double3(position.x, position.y, position.z)
+                            ));
+                    Georeference.latitude = lonlath.y;
+                    Georeference.longitude = lonlath.x;
+                }
 
-                //moving tiles
-                terrainTiles.transform.position = Vector3.MoveTowards(terrainTiles.transform.position, terrainTiles.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
-                // Now moves Cesium Georeference. 
-                Georeference.transform.position = Vector3.MoveTowards(Georeference.transform.position, Georeference.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime);
+                else
+                {
+                    SceneMaterializer.singleton.activeTiles.transform.position = Vector3.MoveTowards(SceneMaterializer.singleton.activeTiles.transform.position, SceneMaterializer.singleton.activeTiles.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime); 
 
+                    /*Vector3 cameraForward =
+                        new Vector3((movePlatform.y == 0)? gameObject.GetComponentInChildren<Camera>().transform.forward.x : 0, movePlatform.y,
+                            (movePlatform.y == 0) ? gameObject.GetComponentInChildren<Camera>().transform.forward.z : 0);*/
 
-                // Rotate the moon! 
-                /*Vector3 position = transform.position + (transform.forward * move.y + transform.right * move.x) * 1;
-                double3 lonlath = Georeference.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(
-                    Georeference.TransformUnityPositionToEarthCenteredEarthFixed(new double3(position.x, position.y, position.z)
-                        ));
-                Georeference.latitude = lonlath.y;
-                Georeference.longitude = lonlath.x;*/
+                }
+                
             }
 
         }

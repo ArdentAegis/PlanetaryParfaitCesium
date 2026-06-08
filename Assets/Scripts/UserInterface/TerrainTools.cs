@@ -27,6 +27,7 @@ namespace UserInterface
 
         [Header("Cesium Integration")]
         public CesiumGeoreference Georeference;
+        public SphereShellMaker sphereShellMaker;
         
         [Header("Tab/Shift Icons")]
         public Image tabImg;
@@ -98,8 +99,16 @@ namespace UserInterface
 
         void Update()
         {
-            resetPosition.gameObject.SetActive(SceneMaterializer.singleton.terrain.transform.position !=
+            if (SceneMaterializer.singleton.useCesium)
+            {
+                resetPosition.gameObject.SetActive(Georeference.longitude != sphereShellMaker.cesiumStartingLonLat.x
+                                                || Georeference.latitude != sphereShellMaker.cesiumStartingLonLat.y);
+            }
+            else
+            {
+                resetPosition.gameObject.SetActive(SceneMaterializer.singleton.activeTiles.transform.position !=
                                                SceneMaterializer.singleton.terrainStartingPosition);
+            }
 
             if(GameState.IsVR) InfoPanel.Panel.DimText(perPixelPanel.activeSelf || terrainLayers.activeSelf || scaleBarPanel.activeSelf || m_TutorialOpen);
         }
@@ -147,8 +156,15 @@ namespace UserInterface
             });
             resetPosition.onClick.AddListener(delegate
             {
-                SceneMaterializer.singleton.terrain.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
-                Georeference.transform.position = Vector3.zero;
+                if (SceneMaterializer.singleton.useCesium)
+                {
+                    Georeference.transform.position = Vector3.zero;
+                    Georeference.SetOriginLongitudeLatitudeHeight(sphereShellMaker.cesiumStartingLonLat.x, sphereShellMaker.cesiumStartingLonLat.y, 0);
+                }
+                else
+                {
+                    SceneMaterializer.singleton.activeTiles.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
+                }
             });
             
             helpButton.onClick.AddListener(delegate
