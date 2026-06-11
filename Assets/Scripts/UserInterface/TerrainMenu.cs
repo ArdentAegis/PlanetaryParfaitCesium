@@ -62,8 +62,6 @@ namespace UserInterface
             {
                 ToggleMenu(false);
                 MainMenu.OpenMenu(true);
-                Login.username = "";
-                Login.password = "";
             });
             
             backToGameButton.onClick.AddListener(delegate
@@ -78,6 +76,8 @@ namespace UserInterface
             {
                 ToggleMenu(false);
                 MainMenu.OpenMenu(true);
+                Login.username = "";
+                Login.password = "";
                 Login.LoggedIn = false;
             });
         }

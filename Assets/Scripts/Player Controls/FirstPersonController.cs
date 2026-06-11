@@ -334,7 +334,7 @@ namespace XRControls{
 
                 else
                 {
-                    SceneMaterializer.singleton.activeTiles.transform.position = Vector3.MoveTowards(SceneMaterializer.singleton.activeTiles.transform.position, SceneMaterializer.singleton.activeTiles.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime); 
+                    SceneMaterializer.singleton.terrain.transform.position = Vector3.MoveTowards(SceneMaterializer.singleton.terrain.transform.position, SceneMaterializer.singleton.terrain.transform.position - inputDirection.normalized * speed, speed * Time.deltaTime); 
 
                     /*Vector3 cameraForward =
                         new Vector3((movePlatform.y == 0)? gameObject.GetComponentInChildren<Camera>().transform.forward.x : 0, movePlatform.y,

@@ -45,13 +45,14 @@ namespace TerrainEngine {
         private double latdist;
 
         public double2 cesiumStartingLonLat;
+        public Vector3 georeferenceStartingPosition = new Vector3(0, -5f, 0);
 
         public Vector3 GetSpherePosition(double lon, double lat)
         {
             if (lon < -180) { lon = 360 + lon; }
 
             // Geodetic to Geocentric latitude correction
-            lat = (double)(180 / Math.PI * MathF.Atan((1-flatteningFactor)*(1-flatteningFactor) * (float)Math.Tan((double)(lat * Math.PI / 180))));
+            lat = (double)(Mathf.Rad2Deg * Mathf.Atan((1-flatteningFactor)*(1-flatteningFactor) * (float)Math.Tan((double)(lat * Mathf.Deg2Rad))));
 
             double3 lonlath = new double3(lon, lat, surfaceHeight);
             double3 ecef = GeoRef.ellipsoid.LongitudeLatitudeHeightToCenteredFixed(lonlath);
@@ -185,6 +186,7 @@ namespace TerrainEngine {
 
             GameObject obj = new GameObject("hi :3");
             obj.transform.parent = this.transform;
+            obj.transform.position = this.transform.position;
             //obj.transform.localRotation = Quaternion.identity;
             obj.AddComponent<MeshFilter>();
             obj.AddComponent<MeshRenderer>();
@@ -207,22 +209,6 @@ namespace TerrainEngine {
         //            obj.name = i + ", " + j;
         //        }
         //    }
-        }
-
-        private void Awake()
-        {
-            //MakeSurface();
-        }
-        // Start is called before the first frame update
-        void Start()
-        {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
         }
     }
 }

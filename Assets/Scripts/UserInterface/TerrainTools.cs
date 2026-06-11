@@ -26,8 +26,7 @@ namespace UserInterface
         #region VARIABLES
 
         [Header("Cesium Integration")]
-        public CesiumGeoreference Georeference;
-        public SphereShellMaker sphereShellMaker;
+        public CesiumGeoreference georeference;
         
         [Header("Tab/Shift Icons")]
         public Image tabImg;
@@ -101,12 +100,13 @@ namespace UserInterface
         {
             if (SceneMaterializer.singleton.useCesium)
             {
-                resetPosition.gameObject.SetActive(Georeference.longitude != sphereShellMaker.cesiumStartingLonLat.x
-                                                || Georeference.latitude != sphereShellMaker.cesiumStartingLonLat.y);
+                resetPosition.gameObject.SetActive(georeference.transform.position != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition
+                                                || georeference.longitude != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x
+                                                || georeference.latitude != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y);
             }
             else
             {
-                resetPosition.gameObject.SetActive(SceneMaterializer.singleton.activeTiles.transform.position !=
+                resetPosition.gameObject.SetActive(SceneMaterializer.singleton.terrain.transform.position !=
                                                SceneMaterializer.singleton.terrainStartingPosition);
             }
 
@@ -158,12 +158,14 @@ namespace UserInterface
             {
                 if (SceneMaterializer.singleton.useCesium)
                 {
-                    Georeference.transform.position = Vector3.zero;
-                    Georeference.SetOriginLongitudeLatitudeHeight(sphereShellMaker.cesiumStartingLonLat.x, sphereShellMaker.cesiumStartingLonLat.y, 0);
+                    georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition;
+                    georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x, 
+                                                                SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y, 
+                                                                0);
                 }
                 else
                 {
-                    SceneMaterializer.singleton.activeTiles.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
+                    SceneMaterializer.singleton.terrain.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
                 }
             });
             

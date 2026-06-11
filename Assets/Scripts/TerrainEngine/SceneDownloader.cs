@@ -9,6 +9,7 @@ using UnityEngine.Networking;
 using UnityEngine.Events;
 using UserInterface;
 using TerrainEngine.Tools;
+using CesiumForUnity;
 
 namespace TerrainEngine
 {
@@ -24,6 +25,7 @@ namespace TerrainEngine
     /// </summary>
     public class SceneDownloader : MonoBehaviour
     {
+        public CesiumGeoreference georeference;
         public GameObject cesiumMoon;
 
         public List<Texture2D> datalayertextures;
@@ -103,6 +105,18 @@ namespace TerrainEngine
                     StartCoroutine(ChangeState(SceneSession.READY));
                     break;
                 case SceneSession.READY:
+                    if (SceneMaterializer.singleton.useCesium)
+                    {
+                        georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition;
+                        georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x, 
+                                                                    SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y, 
+                                                                    0);
+                    }
+                    else
+                    {
+                        SceneMaterializer.singleton.terrain.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
+                    }
+
                     if (scene.body == "Luna")
                     {
                         SceneMaterializer.singleton.useCesium = true;

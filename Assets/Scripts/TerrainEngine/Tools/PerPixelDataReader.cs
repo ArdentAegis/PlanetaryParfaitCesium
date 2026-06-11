@@ -8,7 +8,6 @@ using Unity.Netcode;
 using UnityEngine;
 using UserInterface;
 using XRController = XRControls.XRController;
-using Unity.Mathematics;
 using CesiumForUnity;
 
 namespace TerrainEngine.Tools
@@ -232,7 +231,7 @@ namespace TerrainEngine.Tools
                 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
 
                 // Geocentric to Geodetic latitude correction
-                lonlath.y = (double)(180 / Math.PI * MathF.Atan((float)Math.Tan(lonlath.y * Math.PI / 180)/((1-flatteningFactor)*(1-flatteningFactor))));
+                lonlath.y = (double)(Mathf.Rad2Deg * Mathf.Atan((float)Math.Tan(lonlath.y * Mathf.Deg2Rad)/((1-flatteningFactor)*(1-flatteningFactor))));
 
                 float u = ((float)lonlath.x - startlon) / (endlon - startlon);
                 float v = ((float)lonlath.y - startlat) / (endlat - startlat);

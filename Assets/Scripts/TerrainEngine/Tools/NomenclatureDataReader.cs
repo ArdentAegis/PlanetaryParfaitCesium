@@ -15,8 +15,6 @@ namespace TerrainEngine.Tools
     {
         #region FIELDS
         public static NomenclatureDataReader singleton;
-
-        public SphereShellMaker sphereShellMaker;
         
         public List<Nomenclature> nomenclaturePins;
         public GameObject nomenclatureParent;
@@ -72,8 +70,8 @@ namespace TerrainEngine.Tools
 
                 if (SceneMaterializer.singleton.useCesium)
                 {
-                    double2 lonlat = sphereShellMaker.PixelCoordinatesToLonLat(values.x, values.y, heightTexture);
-                    newPosition = sphereShellMaker.GetSpherePosition(lonlat.x, lonlat.y);
+                    double2 lonlat = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().PixelCoordinatesToLonLat(values.x, values.y, heightTexture);
+                    newPosition = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().GetSpherePosition(lonlat.x, lonlat.y) + georeference.transform.position;
                 }
 
                 else

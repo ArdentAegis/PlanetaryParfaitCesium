@@ -43,7 +43,7 @@ namespace TerrainEngine{
         private void Start()
         {
             singleton = this;
-            terrainStartingPosition = Vector3.zero;
+            terrainStartingPosition = new Vector3(0f, -5f, 0f);;
 
             StartCoroutine(LoadStartingTerrain(startingTerrain));
         }
