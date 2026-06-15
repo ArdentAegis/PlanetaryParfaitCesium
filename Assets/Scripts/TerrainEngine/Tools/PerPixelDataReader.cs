@@ -217,9 +217,10 @@ namespace TerrainEngine.Tools
                 endlon -= 360;
             }
             float endlat = Convert.ToSingle(trlonlat[1]);
-
+            
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit, 1000f)) {
+            LayerMask layer = LayerMask.GetMask("Default");
+			if (Physics.Raycast(ray, out hit, 1000f, layer)) {
                 
                 Vector3 position = hit.point;
                 check.position = position;
@@ -240,11 +241,12 @@ namespace TerrainEngine.Tools
                 if (frameCount >= frameMax)
                 {   
                     // Debug.Log("(" + u + ", " + v + ")");
-                    Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
+                    // Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
                     frameCount = 0;
                 }
-                
+
                 int index = (int)(Math.Abs(MathF.Round(v * heightTexture.height) - heightTexture.height) * heightTexture.width + (u * heightTexture.width));
+
                 #region DYNAMIC_READOUT
                 for (int i = 0; i < floatArrays.Count; i++)
                 {
@@ -274,7 +276,7 @@ namespace TerrainEngine.Tools
                 {
                     if (index <= (heightTexture.width * heightTexture.height) && u <= 1 && u >= 0 && v <= 1 && v >= 0)
                     {
-                        byteOutput += byteDataNames[i] + ": " + byteArrays[i][index] + " " +
+                        byteOutput += byteDataNames[i] + ": " + byteArrays[i][index*2] + " " +
                                         byteDataUnits[i] + "\n";
                     }
                     else
@@ -540,7 +542,7 @@ namespace TerrainEngine.Tools
                     {
                         if (index <= (heightTexture.width * heightTexture.height))
                         {
-                            byteOutput += byteDataNames[i] + ": " + byteArrays[i][index] + " " +
+                            byteOutput += byteDataNames[i] + ": " + byteArrays[i][index*2] + " " +
                                           byteDataUnits[i] + "\n";
                         }
                         else

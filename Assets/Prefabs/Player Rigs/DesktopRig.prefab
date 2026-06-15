@@ -142,6 +142,7 @@ MonoBehaviour:
     m_Bits: 193
   TopClamp: 90
   BottomClamp: -90
+  Georeference: {fileID: 0}
   _hasAnimator: 0
   _actionBasedController: {fileID: 0}
   jump: 0
@@ -1644,10 +1645,10 @@ MonoBehaviour:
   m_IsTrackedAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Is Tracked
       m_Type: 1
       m_ExpectedControlType: 
-      m_Id: 
+      m_Id: 1804ed58-a6e8-4343-8647-52c7055b2477
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -1767,10 +1768,10 @@ MonoBehaviour:
   m_UIScrollAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: UI Scroll
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 
+      m_Id: da6b9b80-edbd-4bdd-8abf-375e15a7bee9
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
@@ -1813,10 +1814,10 @@ MonoBehaviour:
   m_DirectionalAnchorRotationAction:
     m_UseReference: 0
     m_Action:
-      m_Name: 
+      m_Name: Directional Anchor Rotation
       m_Type: 0
       m_ExpectedControlType: Vector2
-      m_Id: 
+      m_Id: 18a7fccf-0184-44d2-84a1-3ad27a56336f
       m_Processors: 
       m_Interactions: 
       m_SingletonActionBindings: []
