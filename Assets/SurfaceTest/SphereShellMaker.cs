@@ -13,7 +13,7 @@ namespace TerrainEngine {
     {
         // Length and Width (in vertices) of the shell. 
         public int length = 100;
-        public int width = 200;
+        public int width = 100;
         public double surfaceHeight = 10;
         public Material material;
         public GameObject Instance;
@@ -46,6 +46,17 @@ namespace TerrainEngine {
 
         public double2 cesiumStartingLonLat;
         public Vector3 georeferenceStartingPosition = new Vector3(0, -5f, 0);
+
+        public bool ready = false;
+
+        void Update()
+        {
+            if (ready) 
+            {
+                AlignWithCesium();
+                ready = false;
+            }
+        }
 
         public Vector3 GetSpherePosition(double lon, double lat)
         {
@@ -145,6 +156,61 @@ namespace TerrainEngine {
                 }
             }
         }
+
+        public void AlignWithCesium()
+        {
+            MakeVertices();
+            for (int i = 0; i < length; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    RaycastHit hit;
+                    LayerMask layerMask = LayerMask.GetMask("Default");
+                    if (Physics.Raycast(vertices[i,j], Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), out hit, 100, layerMask))
+                    {
+                        vertices[i,j] = hit.point + Vector3.up * 0.05f;
+                    }
+                    else if (Physics.Raycast(vertices[i,j], -Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), out hit, 100, layerMask))
+                    {
+                        vertices[i,j] = hit.point + Vector3.up * 0.05f;
+                    }
+                }
+            }
+            Destroy(surface);
+            // Make the mesh that will be assigned to the new gameobject
+            Mesh mesh = new Mesh {name = "Mesh Name" };
+            // Flatten the arrays
+            mesh.SetVertices(vertices.Cast<Vector3>().ToArray());
+
+            // Letting Unity Figure out the normals for now. 
+            //mesh.normals = normals.Cast<Vector3>().ToArray();
+            //Vector3[] norm = new Vector3[length * width];
+            //for (int i = 0; i < norm.Length; i++) { norm[i] = Vector3.up; }
+            //mesh.normals = norm;
+
+            mesh.SetUVs(0, uvs.Cast<Vector2>().ToArray());
+            mesh.triangles = triangles.Cast<int>().ToArray();
+
+            // Recalculate stuff. 
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            mesh.RecalculateTangents();
+
+            GameObject obj = new GameObject("hi :3");
+            obj.transform.parent = this.transform;
+            // obj.transform.position = this.transform.position;
+            // obj.transform.localRotation = Quaternion.identity;
+            obj.AddComponent<MeshFilter>();
+            obj.AddComponent<MeshRenderer>();
+            
+            // Anchoring the mesh to the globe so they rotate together (?)
+            //obj.AddComponent<CesiumGlobeAnchor>();
+
+            obj.GetComponent<MeshFilter>().mesh = mesh;
+            obj.GetComponent<MeshRenderer>().material = material;
+            surface = obj;
+        }
+
         // This should be called every time a scene is loaded.
         public void MakeSurface() 
         {
