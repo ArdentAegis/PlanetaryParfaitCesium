@@ -47,7 +47,7 @@ Material:
     - _numTiles: -105.7
     - _offset: -29.5
     - _scaleFactor: 0.0000040000004
-    - _scaleFactor2: 0
+    - _scaleFactor2: 1
     - _width: 1170
     m_Colors:
     - _uv_max: {r: 0.5, g: 1, b: 0, a: 0}

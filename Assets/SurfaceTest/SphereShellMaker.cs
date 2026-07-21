@@ -47,14 +47,26 @@ namespace TerrainEngine {
         public double2 cesiumStartingLonLat;
         public Vector3 georeferenceStartingPosition = new Vector3(0, -5f, 0);
 
+        float elapsedTime = 0;
+        Mesh mesh;
+
         public bool ready = false;
 
-        void Update()
+        public void Update()
         {
-            if (ready) 
+            if (SceneMaterializer.singleton.useCesium)
             {
-                AlignWithCesium();
-                ready = false;
+                // elapsedTime += Time.deltaTime;
+                // if (elapsedTime > 1f) 
+                // {
+                //     AlignWithCesium();
+                //     elapsedTime = 0;
+                // }
+                if (ready)
+                {
+                    AlignWithCesium();
+                    ready = false;
+                }
             }
         }
 
@@ -104,7 +116,7 @@ namespace TerrainEngine {
             }
         }
 
-        private void MakeVertices()
+        private IEnumerator MakeVertices()
         {
             // Initialize the list of vertices, normals, and uvs (letting Unity figure out normals for now)
             vertices = new Vector3[length, width];
@@ -113,6 +125,8 @@ namespace TerrainEngine {
 
             // Coordinates! 
             SetCoordinatesVariables();
+
+            yield return StartCoroutine(FindSurfaceHeight());
 
             //Debug.Log("Latitude: (" + startlat + ", " + endlat + ")");
             //Debug.Log("Longitude: (" + startlon + ", " + endlon + ")");
@@ -157,62 +171,83 @@ namespace TerrainEngine {
             }
         }
 
+        public IEnumerator FindSurfaceHeight()
+        {
+            // waits for Cesium terrain to load
+            yield return new WaitForSeconds(3.0f);
+
+            RaycastHit hit;
+            LayerMask layer = LayerMask.GetMask("Default");
+			if (Physics.Raycast(Vector3.zero, Vector3.down, out hit, 1000f, layer)) {
+                Vector3 relPosition = hit.point - GeoRef.transform.position;
+                double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3(relPosition.x, relPosition.y, relPosition.z));
+                surfaceHeight = (float)GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef).z;
+            }
+        }
+
         public void AlignWithCesium()
         {
+            // MakeVertices();
+
+            // for (int i = 0; i < length; i++)
+            // {
+            //     for (int j = 0; j < width; j++)
+            //     {
+            //         RaycastHit hit;
+            //         LayerMask layerMask = LayerMask.GetMask("Default");
+            //         if (Physics.Raycast(vertices[i,j] + 30 * Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)),
+            //                             -Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), 
+            //                             out hit, 100, layerMask))
+            //         {
+            //             vertices[i,j] = hit.point + Vector3.up * 0.05f - transform.position;
+            //         }
+            //     }
+            // }
+
+            // mesh.SetVertices(vertices.Cast<Vector3>().ToArray());
+
+            // mesh.RecalculateNormals();
+            // mesh.RecalculateBounds();
+            // mesh.RecalculateTangents();
+
+
             MakeVertices();
-            for (int i = 0; i < length; i++)
+            Vector3[] verts = vertices.Cast<Vector3>().ToArray();
+            Color[] colors = new Color[vertices.Length];
+
+            for (int i = 0; i < vertices.Length; i++)
             {
-                for (int j = 0; j < width; j++)
+                // Convert the local vertex to a world space position
+                Vector3 worldVertexPos = transform.TransformPoint(verts[i]) / 200f;
+                worldVertexPos += transform.position;
+                
+                RaycastHit hit;
+                LayerMask layerMask = LayerMask.GetMask("Default");
+                
+                // Shoot the raycast from the WORLD space position
+                if (Physics.Raycast(worldVertexPos,
+                                    -Vector3.up, 
+                                    out hit, 100f, layerMask))
                 {
-                    RaycastHit hit;
-                    LayerMask layerMask = LayerMask.GetMask("Default");
-                    if (Physics.Raycast(vertices[i,j], Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), out hit, 100, layerMask))
-                    {
-                        vertices[i,j] = hit.point + Vector3.up * 0.05f;
-                    }
-                    else if (Physics.Raycast(vertices[i,j], -Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), out hit, 100, layerMask))
-                    {
-                        vertices[i,j] = hit.point + Vector3.up * 0.05f;
-                    }
+                    // Now calculate distance using two world-space coordinates
+                    float distance = Vector3.Magnitude(hit.point - worldVertexPos);
+                    colors[i] = new Color(distance / 3f, 1, 0, 1); 
+
+                    GameObject debug = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    debug.transform.position = worldVertexPos;
                 }
             }
-            Destroy(surface);
-            // Make the mesh that will be assigned to the new gameobject
-            Mesh mesh = new Mesh {name = "Mesh Name" };
-            // Flatten the arrays
-            mesh.SetVertices(vertices.Cast<Vector3>().ToArray());
 
-            // Letting Unity Figure out the normals for now. 
-            //mesh.normals = normals.Cast<Vector3>().ToArray();
-            //Vector3[] norm = new Vector3[length * width];
-            //for (int i = 0; i < norm.Length; i++) { norm[i] = Vector3.up; }
-            //mesh.normals = norm;
+            // Assign colors back to the mesh
+            mesh.SetColors(colors);
 
-            mesh.SetUVs(0, uvs.Cast<Vector2>().ToArray());
-            mesh.triangles = triangles.Cast<int>().ToArray();
-
-            // Recalculate stuff. 
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             mesh.RecalculateTangents();
-
-            GameObject obj = new GameObject("hi :3");
-            obj.transform.parent = this.transform;
-            // obj.transform.position = this.transform.position;
-            // obj.transform.localRotation = Quaternion.identity;
-            obj.AddComponent<MeshFilter>();
-            obj.AddComponent<MeshRenderer>();
-            
-            // Anchoring the mesh to the globe so they rotate together (?)
-            //obj.AddComponent<CesiumGlobeAnchor>();
-
-            obj.GetComponent<MeshFilter>().mesh = mesh;
-            obj.GetComponent<MeshRenderer>().material = material;
-            surface = obj;
         }
 
         // This should be called every time a scene is loaded.
-        public void MakeSurface() 
+        public IEnumerator MakeSurface() 
         {
             // Set Cesium variables to use later
             scene = SceneMaterializer.singleton.selectedScene;
@@ -228,11 +263,11 @@ namespace TerrainEngine {
 
             //Instantiate(Instance, GetSpherePosition(lon, lat), Quaternion.identity, this.transform);
             //Instantiate(Instance, GetSpherePosition(startlon, startlat), Quaternion.identity, this.transform);
-            MakeVertices();
+            yield return StartCoroutine(MakeVertices());
         
             Destroy(surface);
             // Make the mesh that will be assigned to the new gameobject
-            Mesh mesh = new Mesh {name = "Mesh Name" };
+            mesh = new Mesh {name = "Mesh Name" };
             // Flatten the arrays
             mesh.SetVertices(vertices.Cast<Vector3>().ToArray());
 

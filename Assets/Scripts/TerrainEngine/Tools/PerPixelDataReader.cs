@@ -241,7 +241,8 @@ namespace TerrainEngine.Tools
                 if (frameCount >= frameMax)
                 {   
                     // Debug.Log("(" + u + ", " + v + ")");
-                    // Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
+                    Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
+                    Debug.Log("Cesium Height: " + lonlath.z);
                     frameCount = 0;
                 }
 

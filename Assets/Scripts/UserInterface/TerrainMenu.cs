@@ -335,6 +335,9 @@ namespace UserInterface
                     SceneMaterializer.singleton.terrain.transform.localScale.x, t * 100,
                     SceneMaterializer.singleton.terrain.transform.localScale.z);
 
+                // used for cesium terrain scaling
+                SceneMaterializer.singleton.activeMaterial.SetFloat("_scaleFactor2", t);
+
                 //converts unity scaledheight back into height value to get accurate height in meters
                 exagValue.text = "Exaggeration: " + (float)Math.Round(exagSlider.value, 2);
                 InfoPanel.Panel.ChangeExaggeration((float)Math.Round(exagSlider.value, 2));
@@ -349,6 +352,9 @@ namespace UserInterface
                     SceneMaterializer.singleton.terrain.transform.localScale.z);
                 exagValue.text = "Exaggeration: " + (float)Math.Round(exagSlider.value, 2);
                 InfoPanel.Panel.ChangeExaggeration((float)Math.Round(exagSlider.value, 2));
+
+                // used for cesium terrain scaling
+                SceneMaterializer.singleton.activeMaterial.SetFloat("_scaleFactor2", 1);
 
             });
 

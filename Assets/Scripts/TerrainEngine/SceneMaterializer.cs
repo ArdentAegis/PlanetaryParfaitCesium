@@ -143,6 +143,7 @@ namespace TerrainEngine{
             activeMaterial.SetFloat("_length", 1f * scene.depthTexture.height);
             activeMaterial.SetFloat("_width", 1f * scene.depthTexture.width);
             activeMaterial.SetFloat("_scaleFactor", -(float)exaggeration * 0.001f); 
+            activeMaterial.SetFloat("_scaleFactor2", 1f); 
 
             //changes terrain transform so it always spawns below the player
             float heightValue = scene.depthTexture.GetPixel(scene.depthTexture.width/2, scene.depthTexture.height/2).r * activeMaterial.GetFloat("_scaleFactor");
