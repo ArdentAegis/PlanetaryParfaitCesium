@@ -330,13 +330,13 @@ namespace UserInterface
                 //float heightValue = scene.depthTexture.GetPixel(scene.depthTexture.width/2, scene.depthTexture.height/2).r * SceneMaterializer.singleton.heightMaterial.GetFloat("_scaleFactor");
                 //SceneMaterializer.singleton.tiles.transform.localPosition = new Vector3(0, -heightValue, 0);
 
-                //original scaling is (200, 100, 200) - multiply current scale value by 100 to get approporiate values
+                //original scaling is (200, 200, 200) - multiply current scale value by 200 to get approporiate values
                 SceneMaterializer.singleton.terrain.transform.localScale = new Vector3(
-                    SceneMaterializer.singleton.terrain.transform.localScale.x, t * 100,
+                    SceneMaterializer.singleton.terrain.transform.localScale.x, t * 200,
                     SceneMaterializer.singleton.terrain.transform.localScale.z);
 
                 // used for cesium terrain scaling
-                SceneMaterializer.singleton.activeMaterial.SetFloat("_scaleFactor2", t);
+                // SceneMaterializer.singleton.activeMaterial.SetFloat("_scaleFactor2", t);
 
                 //converts unity scaledheight back into height value to get accurate height in meters
                 exagValue.text = "Exaggeration: " + (float)Math.Round(exagSlider.value, 2);
@@ -348,7 +348,7 @@ namespace UserInterface
             {
                 exagSlider.value = 1;
                 SceneMaterializer.singleton.terrain.transform.localScale = new Vector3(
-                    SceneMaterializer.singleton.terrain.transform.localScale.x, 100,
+                    SceneMaterializer.singleton.terrain.transform.localScale.x, 200,
                     SceneMaterializer.singleton.terrain.transform.localScale.z);
                 exagValue.text = "Exaggeration: " + (float)Math.Round(exagSlider.value, 2);
                 InfoPanel.Panel.ChangeExaggeration((float)Math.Round(exagSlider.value, 2));

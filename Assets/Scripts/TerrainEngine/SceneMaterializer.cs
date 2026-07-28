@@ -30,6 +30,7 @@ namespace TerrainEngine{
         public GameObject tiles;
         public GameObject activeTiles;
 
+        public GameObject jmarsTerrain;
         public GameObject terrain;
         public Vector3 terrainStartingPosition;
 
@@ -74,6 +75,7 @@ namespace TerrainEngine{
                 tiles.SetActive(false);
                 activeMaterial = shellMat;
                 activeTiles = cesiumTiles;
+                terrain = cesiumTiles;
             }
 
             else
@@ -82,6 +84,7 @@ namespace TerrainEngine{
                 tiles.SetActive(true);
                 activeMaterial = heightMat;
                 activeTiles = tiles;
+                terrain = jmarsTerrain;
             }
         }
 

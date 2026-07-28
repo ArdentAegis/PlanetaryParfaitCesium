@@ -56,15 +56,9 @@ namespace TerrainEngine {
         {
             if (SceneMaterializer.singleton.useCesium)
             {
-                // elapsedTime += Time.deltaTime;
-                // if (elapsedTime > 1f) 
-                // {
-                //     AlignWithCesium();
-                //     elapsedTime = 0;
-                // }
                 if (ready)
                 {
-                    AlignWithCesium();
+                    ShowErrorColorCesium();
                     ready = false;
                 }
             }
@@ -171,10 +165,12 @@ namespace TerrainEngine {
             }
         }
 
+        /* raycasts down from center of terrain onto Cesium mesh to get surface height, 
+        which is used to place jmars terrain at proper height */
         public IEnumerator FindSurfaceHeight()
         {
             // waits for Cesium terrain to load
-            yield return new WaitForSeconds(3.0f);
+            yield return new WaitForSeconds(1.0f);
 
             RaycastHit hit;
             LayerMask layer = LayerMask.GetMask("Default");
@@ -185,65 +181,77 @@ namespace TerrainEngine {
             }
         }
 
-        public void AlignWithCesium()
+
+        // colors terrain texture based on distance from Cesium mesh
+        public void ShowErrorColorCesium()
         {
-            // MakeVertices();
-
-            // for (int i = 0; i < length; i++)
-            // {
-            //     for (int j = 0; j < width; j++)
-            //     {
-            //         RaycastHit hit;
-            //         LayerMask layerMask = LayerMask.GetMask("Default");
-            //         if (Physics.Raycast(vertices[i,j] + 30 * Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)),
-            //                             -Vector3.Normalize(vertices[i,j] + GeoRef.transform.position + new Vector3(0, 1737.4f, 0)), 
-            //                             out hit, 100, layerMask))
-            //         {
-            //             vertices[i,j] = hit.point + Vector3.up * 0.05f - transform.position;
-            //         }
-            //     }
-            // }
-
-            // mesh.SetVertices(vertices.Cast<Vector3>().ToArray());
-
-            // mesh.RecalculateNormals();
-            // mesh.RecalculateBounds();
-            // mesh.RecalculateTangents();
-
-
-            MakeVertices();
-            Vector3[] verts = vertices.Cast<Vector3>().ToArray();
+            // gets terrain mesh information
+            Vector3[] verts = mesh.vertices;
+            Vector2[] uvs = mesh.uv;
+            float[] distances = new float[vertices.Length];
             Color[] colors = new Color[vertices.Length];
 
+            float maxdistance = 0;
+
+            // loops through each vertex
             for (int i = 0; i < vertices.Length; i++)
             {
-                // Convert the local vertex to a world space position
+                // gets the world position of the current vertex
                 Vector3 worldVertexPos = transform.TransformPoint(verts[i]) / 200f;
-                worldVertexPos += transform.position;
-                
+                worldVertexPos += transform.parent.position;
+
+                // applies exaggeration to vertex position
+                float heightValue = scene.depthTexture.GetPixel((int)(scene.depthTexture.width * uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r * 0.001f;
+                // offsets position up to ensure raycast collides with Cesium mesh
+                worldVertexPos.y += heightValue + 3f;
+
+                // GameObject origin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                // Destroy(origin.GetComponent<BoxCollider>());
+                // origin.transform.position = worldVertexPos;
+
+                // GameObject test = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                // Destroy(test.GetComponent<SphereCollider>());
+                    
+                // raycast up and down to find Cesium mesh
                 RaycastHit hit;
                 LayerMask layerMask = LayerMask.GetMask("Default");
                 
-                // Shoot the raycast from the WORLD space position
+                // raycast down
                 if (Physics.Raycast(worldVertexPos,
                                     -Vector3.up, 
-                                    out hit, 100f, layerMask))
+                                    out hit, 10f, layerMask))
                 {
-                    // Now calculate distance using two world-space coordinates
-                    float distance = Vector3.Magnitude(hit.point - worldVertexPos);
-                    colors[i] = new Color(distance / 3f, 1, 0, 1); 
+                    // test.transform.position = hit.point;
+                    // gets distance from vertex point to Cesium mesh and saves it
+                    float distance = Vector3.Magnitude(hit.point - (worldVertexPos - new Vector3(0, 3f, 0)));
+                    // test.name = distance.ToString();
+                    distances[i] = distance; 
 
-                    GameObject debug = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    debug.transform.position = worldVertexPos;
+                    if (distance > maxdistance) maxdistance = distance;
                 }
+                // raycast up
+                else if (Physics.Raycast(worldVertexPos,
+                                    Vector3.up, 
+                                    out hit, 10f, layerMask))
+                {
+                    // gets distance from vertex point to Cesium mesh and saves it
+                    float distance = Vector3.Magnitude(hit.point - (worldVertexPos - new Vector3(0, 3f, 0)));
+                    distances[i] = distance; 
+
+                    if (distance > maxdistance) maxdistance = distance;
+                }
+                else Debug.Log("NONE");
             }
 
-            // Assign colors back to the mesh
+            // set vertex color based on distance from Cesium mesh
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                colors[i] = new Color(distances[i] / maxdistance, 1 - distances[i] / maxdistance, 0, 1);
+            }
+
+            // assign colors back to the mesh
             mesh.SetColors(colors);
 
-            mesh.RecalculateNormals();
-            mesh.RecalculateBounds();
-            mesh.RecalculateTangents();
         }
 
         // This should be called every time a scene is loaded.
@@ -288,7 +296,8 @@ namespace TerrainEngine {
             GameObject obj = new GameObject("hi :3");
             obj.transform.parent = this.transform;
             obj.transform.position = this.transform.position;
-            //obj.transform.localRotation = Quaternion.identity;
+            transform.localRotation = Quaternion.identity;
+            obj.transform.localRotation = Quaternion.identity;
             obj.AddComponent<MeshFilter>();
             obj.AddComponent<MeshRenderer>();
             

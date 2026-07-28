@@ -97,7 +97,7 @@ Shader "Unlit/HeightMatStandardShader"
                 // sample the texture
                 i.uv.y = i.uv.y;
                 fixed4 col = tex2D(_MainTex, i.uv);
-                col *= i.color;
+                col = i.color;
 
 
                 // apply fog
