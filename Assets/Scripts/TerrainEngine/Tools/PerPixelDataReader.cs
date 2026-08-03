@@ -147,7 +147,8 @@ namespace TerrainEngine.Tools
                         ray.origin = Camera.main.transform.position;
                         ray.direction = Camera.main.transform.forward;
                     }
-                    else { 
+                    else 
+                    { 
                         ray = Camera.main.ScreenPointToRay(mousePos);
                     }
                 }
@@ -171,9 +172,12 @@ namespace TerrainEngine.Tools
                 {
                     // Set text & calculate user's raycast to terrain
                     TerrainTools.DynamicReadout("Per Pixel Data", imagePosition + floatOutput + shortOutput + intOutput + byteOutput);
+                    
+                    // if Cesium Moon is being used, use physics raycast onto Cesium mesh
                     if (SceneMaterializer.singleton.useCesium){
                         CalculateRayCesium();
                     }
+                    // use original raymarch for non-Cesium terrains
                     else
                     {
                         CalculateRay();
@@ -189,6 +193,9 @@ namespace TerrainEngine.Tools
 
         #region METHODS
 
+        /// <summary>
+        /// Raycasts onto Cesium Moon mesh and displays layer data at hit point to user
+        /// </summary>
         public void CalculateRayCesium()
         {
             //resetting data outputs
@@ -243,6 +250,7 @@ namespace TerrainEngine.Tools
                     // Debug.Log("(" + u + ", " + v + ")");
                     Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
                     Debug.Log("Cesium Height: " + lonlath.z);
+                    Debug.Log(scene.depthTexture.GetPixel((int)(scene.depthTexture.width * u), (int)(scene.depthTexture.height * v)).r.ToString());
                     frameCount = 0;
                 }
 
@@ -323,142 +331,10 @@ namespace TerrainEngine.Tools
                     pinReady = false;
                 }
             }
-
-            // float step = 0.01f;
-            // lastSign = 0;
-
-            // float scaleFactor = material.GetFloat("_scaleFactor");
-
-            // for (float t = 0.01f; t < 100; t += step)
-            // {
-            //     Vector3 position = ray.origin + t * ray.direction;
-            //     check.position = position;
-                
-            //     // Georeference assumes that it is at the orgin.
-            //     Vector3 relPosition = position - GeoRef.transform.position;
-                
-            //     double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)relPosition.x, (double)relPosition.y, (double)relPosition.z));
-            //     double3 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
-
-            //     float cesiumHeight = (float)lonlath.z;
-            //     //float realCesiumHeight = cesiumHeight * (float)GeoRef.scale;
-                
-                
-            //     float u = ((float)lonlath.x - startlon) / (endlon - startlon);
-            //     float v = ((float)lonlath.y - startlat) / (endlat - startlat);
-
-
-            //     float jmarsHeight = heightTexture.GetPixelBilinear(u, v).r;
-
-            //     float visualheight = jmarsHeight * scaleFactor * .00001f * (float)(1d / GeoRef.scale);
-
-            //     float heightdiff = visualheight - cesiumHeight;
-
-
-            //     if (lastSign == 0)
-            //     {
-            //         lastSign = (int)Mathf.Sign(heightdiff);
-            //     }
-
-            //     // Detect Collision
-            //     if ((Mathf.Abs(heightdiff) < 1 || lastSign == -((int)Mathf.Sign(heightdiff)) ) && !(u < 0 || u > 1 || v < 0 || v > 1))
-            //     {
-            //         //if (GameState.printPerPixelCoordinates)   
-            //         if (frameCount >= frameMax)
-            //         {   
-            //             // Debug.Log("(" + u + ", " + v + ")");
-            //             // Debug.Log("JMARS: " + SceneDownloader.singleton.realHeight.GetPixelBilinear(u, v).r);
-            //             // Debug.Log("Cesium: " + cesiumHeight);
-            //             // Debug.Log("DIFF: " + heightdiff);
-            //             // Debug.Log("Dist: " + t);
-            //             // Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
-
-            //             //Debug.Log(GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)transform.position.x, (double)transform.position.y, (double)transform.position.z))));
-            //             frameCount = 0;
-            //         }
-
-            //         int index = (int)(Math.Abs(MathF.Round(v * heightTexture.height) - heightTexture.height) * heightTexture.width + (u * heightTexture.width));
-
-            //         #region DYNAMIC_READOUT
-            //         for (int i = 0; i < floatArrays.Count; i++)
-            //         {
-            //             if (index <= (heightTexture.width * heightTexture.height))
-            //             {
-            //                 floatOutput += floatDataNames[i] + ": " + floatArrays[i][index] + " " + floatDataUnits[i] + "\n";
-            //             }
-            //             else
-            //             {
-            //                 floatOutput = "";
-            //             }
-
-            //         }
-            //         for (int i = 0; i < intArrays.Count; i++)
-            //         {
-            //             if (index <= (heightTexture.width * heightTexture.height))
-            //             {
-            //                 intOutput += intDataNames[i] + ": " + intArrays[i][index] + " " +
-            //                              intDataUnits[i] + "\n";
-            //             }
-            //             else
-            //             {
-            //                 intOutput = "";
-            //             }
-            //         }
-            //         for (int i = 0; i < byteArrays.Count; i++)
-            //         {
-            //             if (index <= (heightTexture.width * heightTexture.height))
-            //             {
-            //                 byteOutput += byteDataNames[i] + ": " + byteArrays[i][index] + " " +
-            //                               byteDataUnits[i] + "\n";
-            //             }
-            //             else
-            //             {
-            //                 byteOutput = "";
-            //             }
-            //         }
-
-            //         for (int i = 0; i < shortArrays.Count; i++)
-            //         {
-            //             if (index <= (heightTexture.width * heightTexture.height))
-            //             {
-            //                 shortOutput += shortDataNames[i] + ": " + shortArrays[i][index] + " " +
-            //                                shortDataUnits[i] + "\n";
-            //             }
-            //             else
-            //             {
-            //                 shortOutput = "";
-            //             }
-            //         }
-            //         #endregion
-            //         string dataOutput = "";
-
-            //         // For debugging per-pixel data
-            //         int flippedZ = (int)Mathf.Round(heightTexture.height * (1-v)); //Used ONLY in print statements. Remember, the data is FLIPPED
-            //         if (GameState.printPerPixelCoordinates)
-            //         {
-            //             imagePosition = "Index = " + index + "\n" +
-            //                             "X Position = " + u * heightTexture.width + "\n" +
-            //                             "Z Position = " + flippedZ + "\n";
-            //             dataOutput = imagePosition + floatOutput + intOutput + byteOutput + shortOutput;
-            //         }
-            //         else
-            //         {
-            //             dataOutput = floatOutput + intOutput + byteOutput + shortOutput;
-            //         }
-
-            //         //placing pins
-            //         if (Input.GetMouseButtonDown(1) || (controlCheck.triggerActive && controlCheck.leftHandActive && !printOnce))
-            //         {
-            //             SpawnPin(position, dataOutput, SceneDownloader.singleton.guid);
-            //             printOnce = true;
-            //         }
-            //         break;
-            //     }
-            // }
     } 
 
         /// <summary>
-        /// Creates raycast from user's mouse/controller to the terrain.
+        /// Creates raycast from user's mouse/controller to the JMARS terrain
         /// </summary>
         public void CalculateRay()
         {

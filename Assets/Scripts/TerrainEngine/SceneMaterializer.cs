@@ -26,7 +26,7 @@ namespace TerrainEngine{
         public Material heightMat;
         public Material activeMaterial;
 
-        public GameObject cesiumTiles;
+        public GameObject cesiumTerrain;
         public GameObject tiles;
         public GameObject activeTiles;
 
@@ -44,7 +44,7 @@ namespace TerrainEngine{
         private void Start()
         {
             singleton = this;
-            terrainStartingPosition = new Vector3(0f, -5f, 0f);;
+            terrainStartingPosition = new Vector3(0f, -5f, 0f);
 
             StartCoroutine(LoadStartingTerrain(startingTerrain));
         }
@@ -67,20 +67,23 @@ namespace TerrainEngine{
 
         #region METHODS
 
+        /// <summary>
+        /// Switches active terrain type based on if loaded terrain is on Moon and thus using Cesium functions
+        /// </summary>
         public void ActiveTileSwitcher()
         {
             if (SceneMaterializer.singleton.useCesium)
             {
-                cesiumTiles.SetActive(true);
+                cesiumTerrain.SetActive(true);
                 tiles.SetActive(false);
                 activeMaterial = shellMat;
-                activeTiles = cesiumTiles;
-                terrain = cesiumTiles;
+                activeTiles = cesiumTerrain;
+                terrain = cesiumTerrain;
             }
 
             else
             {
-                cesiumTiles.SetActive(false);
+                cesiumTerrain.SetActive(false);
                 tiles.SetActive(true);
                 activeMaterial = heightMat;
                 activeTiles = tiles;

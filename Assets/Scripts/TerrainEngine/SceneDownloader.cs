@@ -105,6 +105,7 @@ namespace TerrainEngine
                     StartCoroutine(ChangeState(SceneSession.READY));
                     break;
                 case SceneSession.READY:
+                    // resets Georeference position and rotation if Cesium is active
                     if (SceneMaterializer.singleton.useCesium)
                     {
                         georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition;
@@ -112,31 +113,34 @@ namespace TerrainEngine
                                                                     SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y, 
                                                                     0);
                     }
+                    // resets terrain position
                     else
                     {
                         SceneMaterializer.singleton.terrain.transform.position = SceneMaterializer.singleton.terrainStartingPosition;
                     }
 
+                    // activates Cesium Moon and sets boolean to use Cesium functions if current terrain is on Moon
                     if (scene.body == "Luna")
                     {
                         SceneMaterializer.singleton.useCesium = true;
                         cesiumMoon.SetActive(true);
                     }
+                    // for terrains on other bodies, disable Cesium Moon and use ordinary functions 
                     else
                     {
                         SceneMaterializer.singleton.useCesium = false;
                         cesiumMoon.SetActive(false);
                     }
 
+                    // switches material, terrain, and tile references based on if Cesium is in use
                     SceneMaterializer.singleton.ActiveTileSwitcher();
                     SceneMaterializer.singleton.SetMaterials(scene);
                     SceneMaterializer.singleton.selectedScene = scene;
 
                     if (SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>() != null)
                     {
-                        // Calling the sphere shell creation function here. 
-                        SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().StartCoroutine(
-                            SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface());
+                        // creates JMARS terrain using Cesium specific function
+                        StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface());
                     }
                     if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
                     
