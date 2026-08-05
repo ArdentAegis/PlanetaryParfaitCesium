@@ -134,6 +134,16 @@ namespace TerrainEngine {
             GameObject obj = new GameObject("Terrain Mesh");
             obj.transform.parent = this.transform;
             obj.transform.position = this.transform.position;
+
+            // applies exaggeration from JMARS height texture and current exaggeration slider value to position
+            float heightValue = (transform.localScale.y / 200f) * 
+                                scene.depthTexture.GetPixel((int)(scene.depthTexture.width / 2),
+                                                            (int)(scene.depthTexture.height / 2)).r * 0.001f; // 0.001 is moon scale
+            // moves position based on height texture value
+            Vector3 position = this.transform.position;
+            position.y -= heightValue;
+            transform.position = position;
+
             transform.localRotation = Quaternion.identity;
             obj.transform.localRotation = Quaternion.identity;
             obj.AddComponent<MeshFilter>();
@@ -300,7 +310,7 @@ namespace TerrainEngine {
             RaycastHit hit;
             LayerMask layer = LayerMask.GetMask("Default");
 			if (Physics.Raycast(Vector3.zero, Vector3.down, out hit, 1000f, layer)) {
-                //transform.position = hit.point;
+                // Georeference assumes that it is at the orgin, so adjust for Georeference gameobject's position
                 Vector3 relPosition = hit.point - GeoRef.transform.position;
                 // gets Ellipsoid-Centered, Ellipsoid-Fixed (ECEF) coordinates of raycast hit point
                 double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3(relPosition.x, relPosition.y, relPosition.z));
@@ -335,12 +345,12 @@ namespace TerrainEngine {
                     continue;
                 }
 
-                // gets the world position of the current vertex
+                // gets the world position of the current vertex, corrected for the terrain's scaling of (200, 200, 200) 
                 Vector3 worldVertexPos = transform.TransformPoint(verts[i] / 200f);
 
                 // applies exaggeration from JMARS height texture and current exaggeration slider value to vertex position
                 float heightValue = (transform.localScale.y / 200f) * scene.depthTexture.GetPixel((int)(scene.depthTexture.width * 
-                                    uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r * 0.001f;
+                                    uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r * 0.001f; // 0.001 is moon scale
                 // offsets position based on height texture value
                 worldVertexPos.y += heightValue;
                 
