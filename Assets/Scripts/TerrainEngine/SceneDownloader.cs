@@ -557,7 +557,7 @@ namespace TerrainEngine
 
             for (int i = 0; i < floatArray.Length; i++)
             {
-                floatArray[i] += -mid;
+                //floatArray[i] += -mid;
             }
 
             heightData = floatArray;
@@ -622,7 +622,7 @@ namespace TerrainEngine
             float[] realArray = (float[])floatArray.Clone();
             for (int i = 0; i < floatArray.Length; i++)
             {
-                floatArray[i] += -mid;
+                //floatArray[i] += -mid;
             }
 
             heightData = floatArray;

@@ -16,6 +16,7 @@ Shader "Unlit/HeightMatStandardShader"
         _width("Width", Float) = 1553
         _numTiles("NumTiles", Int) = 30
         _offset("Offset", Float) = 0
+        _showErrorColor("ShowErrorColor", Int) = 0
     }
     SubShader
     {
@@ -62,6 +63,8 @@ Shader "Unlit/HeightMatStandardShader"
 
             float _offset;
 
+            int _showErrorColor;
+
             v2f vert(appdata v)
             {
                 v2f o;
@@ -97,8 +100,9 @@ Shader "Unlit/HeightMatStandardShader"
                 // sample the texture
                 i.uv.y = i.uv.y;
                 fixed4 col = tex2D(_MainTex, i.uv);
-                col = i.color;
-
+                if (_showErrorColor){
+                    col = i.color;
+                }
 
                 // apply fog
                 //UNITY_APPLY_FOG(i.fogCoord, col);

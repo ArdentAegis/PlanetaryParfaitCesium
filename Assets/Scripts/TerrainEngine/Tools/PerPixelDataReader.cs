@@ -232,7 +232,7 @@ namespace TerrainEngine.Tools
                 Vector3 position = hit.point;
                 check.position = position;
 
-                // Georeference assumes that it is at the orgin.
+                // Georeference assumes that it is at the orgin
                 Vector3 relPosition = position - GeoRef.transform.position;
                 
                 double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)relPosition.x, (double)relPosition.y, (double)relPosition.z));
@@ -246,11 +246,12 @@ namespace TerrainEngine.Tools
 
                 //if (GameState.printPerPixelCoordinates)   
                 if (frameCount >= frameMax)
-                {   
+                {
                     // Debug.Log("(" + u + ", " + v + ")");
                     Debug.Log("Lat : " + lonlath.y + ", Lon: " + lonlath.x);
                     Debug.Log("Cesium Height: " + lonlath.z);
-                    Debug.Log(scene.depthTexture.GetPixel((int)(scene.depthTexture.width * u), (int)(scene.depthTexture.height * v)).r.ToString());
+                    Debug.Log("Height Texture: " + scene.depthTexture.GetPixel((int)(scene.depthTexture.width * u), (int)(scene.depthTexture.height * v)).r);
+
                     frameCount = 0;
                 }
 

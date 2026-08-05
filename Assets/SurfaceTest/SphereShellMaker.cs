@@ -53,18 +53,41 @@ namespace TerrainEngine {
         float elapsedTime = 0;
         Mesh mesh;
 
-        public bool ready = false;
+        [Header("Height Error Coloring")]
+        // click in inspector to run ShowErrorColorCesium() once
+        [Tooltip("Click to run ShowErrorColorCesium() once")]
+        [SerializeField] private bool generateErrorColor = false;
+        // toggle in inspector to use Unity world positions for distance comparisons
+        [Tooltip("Toggle to use Unity world positions for distance comparisons")]
+        [SerializeField] private bool compareUnityDistance;
+        // toggle in inspector to use Cesium height values and JMARS height texture values for distance comparisons
+        [Tooltip("Toggle to use Cesium height values and JMARS height texture values for distance comparisons")]
+        [SerializeField] private bool compareHeightMapDistance;
+        // toggle in inspector to make distance error coloring visible
+        [Tooltip("Toggle to make distance error coloring visible")]
+        [SerializeField] private bool toggleErrorColor;
+
+        void Start()
+        {
+            generateErrorColor = false;
+            compareUnityDistance = false;
+            compareHeightMapDistance = true;
+            toggleErrorColor = false;
+        }
 
         public void Update()
         {
             if (SceneMaterializer.singleton.useCesium)
             {
                 // press ready button in Unity inspector to color mesh 
-                if (ready)
+                if (generateErrorColor)
                 {
                     ShowErrorColorCesium();
-                    ready = false;
+                    generateErrorColor = false;
                 }
+
+                SceneMaterializer.singleton.activeMaterial.SetInt("_showErrorColor", toggleErrorColor ? 1 : 0);
+
             }
         }
 
@@ -330,10 +353,10 @@ namespace TerrainEngine {
                 // origin.transform.position = worldVertexPos;
                 // origin.name = i.ToString();
 
-                GameObject test = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                test.SetActive(false);
-                test.transform.localScale = test.transform.localScale * 0.3f;
-                Destroy(test.GetComponent<SphereCollider>());
+                // GameObject test = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                // test.SetActive(false);
+                // test.transform.localScale = test.transform.localScale * 0.3f;
+                // Destroy(test.GetComponent<SphereCollider>());
                     
                 // raycast up and down to find Cesium mesh
                 RaycastHit hit;
@@ -355,27 +378,42 @@ namespace TerrainEngine {
                     y += scene.depthTexture.GetPixel((int)(scene.depthTexture.width * uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r.ToString() + "\n";
                     
                     // gets distance from vertex point to Cesium mesh and saves it
-                    float distance = Vector3.Magnitude(hit.point - worldVertexPos);
+                    float distance = 0.0f;
+                    // compares Unity world positions between meshes
+                    if (compareUnityDistance) distance = Vector3.Magnitude(hit.point - worldVertexPos);
+                    // compares height values from Cesium Moon and JMARS height texture
+                    else if (compareHeightMapDistance) distance = (float)lonlath.z - scene.depthTexture.GetPixel((int)(scene.depthTexture.width * uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r;
                     distances[i] = distance; 
 
-                    test.transform.position = hit.point;
-                    test.name = distance.ToString();
+                    // test.transform.position = hit.point;
+                    // test.name = distance.ToString();
                     
-                    if (distance > maxdistance) maxdistance = distance;
+                    if (distance > maxdistance) maxdistance = (float)distance;
                 }
                 // raycast up
                 else if (Physics.Raycast(worldVertexPos + offset,
                                     Vector3.up, 
                                     out hit, 50f, layerMask))
                 {
+                    Vector3 position = hit.point;
+                    // Georeference assumes that it is at the orgin, so adjust for Georeference gameobject's position
+                    Vector3 relPosition = position - GeoRef.transform.position;
+                    
+                    double3 ecef = GeoRef.TransformUnityPositionToEarthCenteredEarthFixed(new double3((double)relPosition.x, (double)relPosition.y, (double)relPosition.z));
+                    double3 lonlath = GeoRef.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(ecef);
+
                     // gets distance from vertex point to Cesium mesh and saves it
-                    float distance = Vector3.Magnitude(hit.point - worldVertexPos);
+                    float distance = 0.0f;
+                    // compares Unity world positions between meshes
+                    if (compareUnityDistance) distance = Vector3.Magnitude(hit.point - worldVertexPos);
+                    // compares height values from Cesium Moon and JMARS height texture
+                    else if (compareHeightMapDistance) distance = (float)lonlath.z - scene.depthTexture.GetPixel((int)(scene.depthTexture.width * uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r;
                     distances[i] = distance; 
 
-                    test.transform.position = hit.point;
-                    test.name = distance.ToString();
-
-                    if (distance > maxdistance) maxdistance = distance;
+                    // test.transform.position = hit.point;
+                    // test.name = distance.ToString();
+                    
+                    if (distance > maxdistance) maxdistance = (float)distance;
                 }
                 else Debug.Log("No Raycast Hit");
             }
