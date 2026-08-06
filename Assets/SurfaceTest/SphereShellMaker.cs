@@ -67,12 +67,18 @@ namespace TerrainEngine {
         [Tooltip("Toggle to make distance error coloring visible")]
         [SerializeField] private bool toggleErrorColor;
 
+        [Header("Terrain Superimposing")]
+        [Tooltip("Click to run PlaceTerrain() once")]
+        [SerializeField] private bool placeTerrain;
+
         void Start()
         {
             generateErrorColor = false;
             compareUnityDistance = false;
             compareHeightMapDistance = true;
             toggleErrorColor = false;
+
+            placeTerrain = false;
         }
 
         public void Update()
@@ -84,6 +90,12 @@ namespace TerrainEngine {
                 {
                     ShowErrorColorCesium();
                     generateErrorColor = false;
+                }
+
+                if (placeTerrain)
+                {
+                    PlaceTerrain();
+                    placeTerrain = false;
                 }
 
                 SceneMaterializer.singleton.activeMaterial.SetInt("_showErrorColor", toggleErrorColor ? 1 : 0);
@@ -136,13 +148,13 @@ namespace TerrainEngine {
             obj.transform.position = this.transform.position;
 
             // applies exaggeration from JMARS height texture and current exaggeration slider value to position
-            float heightValue = (transform.localScale.y / 200f) * 
-                                scene.depthTexture.GetPixel((int)(scene.depthTexture.width / 2),
-                                                            (int)(scene.depthTexture.height / 2)).r * 0.001f; // 0.001 is moon scale
-            // moves position based on height texture value
-            Vector3 position = this.transform.position;
-            position.y -= heightValue;
-            transform.position = position;
+            // float heightValue = (transform.localScale.y / 200f) * 
+            //                     scene.depthTexture.GetPixel((int)(scene.depthTexture.width / 2),
+            //                                                 (int)(scene.depthTexture.height / 2)).r * 0.001f; // 0.001 is moon scale
+            // // moves position based on height texture value
+            // Vector3 position = this.transform.position;
+            // position.y -= heightValue;
+            // transform.position = position;
 
             transform.localRotation = Quaternion.identity;
             obj.transform.localRotation = Quaternion.identity;
@@ -155,6 +167,8 @@ namespace TerrainEngine {
 
             // sets surface to new terrain gameobject
             surface = obj;
+
+            PlaceTerrain();
         
 
         //DEBUG: Instantiates points at the vertices.
@@ -337,7 +351,7 @@ namespace TerrainEngine {
             string y = "";
 
             // loops through each vertex of the mesh
-            for (int i = 0; i < vertices.Length - width /*skips last row of vertices*/; i++)
+            for (int i = 0; i < verts.Length - width /*skips last row of vertices*/; i++)
             {
                 // does not check edges of terrain where height map data is inaccurate
                 if (i % length == length - 1)
@@ -346,16 +360,16 @@ namespace TerrainEngine {
                 }
 
                 // gets the world position of the current vertex, corrected for the terrain's scaling of (200, 200, 200) 
-                Vector3 worldVertexPos = transform.TransformPoint(verts[i] / 200f);
+                Vector3 worldVertexPos = transform.TransformPoint(verts[i] / 200.0f);
 
                 // applies exaggeration from JMARS height texture and current exaggeration slider value to vertex position
-                float heightValue = (transform.localScale.y / 200f) * scene.depthTexture.GetPixel((int)(scene.depthTexture.width * 
+                float heightValue = (transform.localScale.y / 200.0f) * scene.depthTexture.GetPixel((int)(scene.depthTexture.width * 
                                     uvs[i].x), (int)(scene.depthTexture.height * uvs[i].y)).r * 0.001f; // 0.001 is moon scale
                 // offsets position based on height texture value
                 worldVertexPos.y += heightValue;
                 
                 // offsets position up to ensure raycast collides with Cesium mesh
-                Vector3 offset = new Vector3(0, 10f, 0);
+                Vector3 offset = new Vector3(0, 10.0f, 0);
 
                 // GameObject origin = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 // Destroy(origin.GetComponent<BoxCollider>());
@@ -374,7 +388,8 @@ namespace TerrainEngine {
                 
                 // raycast down
                 if (Physics.Raycast(worldVertexPos + offset,
-                                    -Vector3.up, 
+                                    //Vector3.Normalize(worldVertexPos - (GeoRef.transform.position + new Vector3(0, -1737.4f, 0))), 
+                                    -Vector3.up,
                                     out hit, 50f, layerMask))
                 {
                     Vector3 position = hit.point;
@@ -402,8 +417,9 @@ namespace TerrainEngine {
                 }
                 // raycast up
                 else if (Physics.Raycast(worldVertexPos + offset,
-                                    Vector3.up, 
-                                    out hit, 50f, layerMask))
+                                    //Vector3.Normalize((GeoRef.transform.position + new Vector3(0, -1737.4f, 0)) - worldVertexPos), 
+                                    Vector3.up,
+                                    out hit, 50.0f, layerMask))
                 {
                     Vector3 position = hit.point;
                     // Georeference assumes that it is at the orgin, so adjust for Georeference gameobject's position
@@ -444,6 +460,66 @@ namespace TerrainEngine {
             string path2 = Path.Combine(Application.persistentDataPath, "y.txt");
             File.WriteAllText(path2, y);
 
+        }
+
+        private void PlaceTerrain()
+        {
+            // gets terrain mesh information
+            Vector3[] verts = mesh.vertices;
+            Vector2[] uvs = mesh.uv;
+
+            // loops through each vertex of the mesh
+            for (int i = 0; i < verts.Length; i++)
+            {
+                // gets the world position of the current vertex, corrected for the terrain's scaling of (200, 200, 200) 
+                Vector3 worldVertexPos = transform.TransformPoint(verts[i] / 200.0f);
+                
+                // offsets position up to ensure raycast collides with Cesium mesh
+                Vector3 offset = new Vector3(0, 10.0f, 0);
+
+                // GameObject origin = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                // Destroy(origin.GetComponent<BoxCollider>());
+                // origin.transform.localScale = origin.transform.localScale * 0.3f;
+                // origin.transform.position = worldVertexPos;
+                // origin.name = i.ToString();
+
+                // GameObject test = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                // test.SetActive(true);
+                // test.transform.localScale = test.transform.localScale * 0.1f;
+                // Destroy(test.GetComponent<SphereCollider>());
+                    
+                // raycast up and down to find Cesium mesh
+                RaycastHit hit;
+                LayerMask layerMask = LayerMask.GetMask("Default");
+                
+                // raycast down
+                if (Physics.Raycast(worldVertexPos + offset,
+                                    //Vector3.Normalize(worldVertexPos - (GeoRef.transform.position + new Vector3(0, -1737.4f, 0))), 
+                                    -Vector3.up,
+                                    out hit, 50f, layerMask))
+                {
+                    Vector3 position = hit.point;
+                    verts[i] = hit.point - GeoRef.transform.position;
+                    verts[i].y += 0.05f;
+
+                    // test.transform.position = hit.point;
+                }
+                // raycast up
+                else if (Physics.Raycast(worldVertexPos + offset,
+                                    //Vector3.Normalize((GeoRef.transform.position + new Vector3(0, -1737.4f, 0)) - worldVertexPos), 
+                                    Vector3.up,
+                                    out hit, 50.0f, layerMask))
+                {
+                    Vector3 position = hit.point;
+                    verts[i] = hit.point - GeoRef.transform.position;
+                    verts[i].y += 0.05f;
+
+                    // test.transform.position = hit.point;
+                }
+                else Debug.Log("No Raycast Hit");
+            }
+
+            mesh.SetVertices(verts);
         }
     }
 }

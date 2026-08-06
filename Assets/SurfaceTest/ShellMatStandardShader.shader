@@ -75,7 +75,7 @@ Shader "Unlit/HeightMatStandardShader"
                 //clamping fixes artifical terrain walls
                 float4 displacementColor = tex2Dlod(_HeightMap, float4(clamp(v.uv.x, 0.001, 0.999), clamp(v.uv.y, 0.001, 0.999), 0, 0));
                 //float3 vert = float3(v.vertex.x, 0, v.vertex.z) + v.normal * displacementColor * _scaleFactor;
-                float3 vert = v.vertex.xyz + v.normal * (displacementColor.r) * _scaleFactor2 * 0.001; //0.001 is moon scale
+                float3 vert = v.vertex.xyz;// + v.normal * (displacementColor.r) * _scaleFactor2 * 0.001; //0.001 is moon scale
                 
                 o.vertex = UnityObjectToClipPos(vert);
                 o.color = v.color;
