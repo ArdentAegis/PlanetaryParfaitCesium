@@ -125,7 +125,7 @@ namespace TerrainEngine
                         SceneMaterializer.singleton.useCesium = true;
                         cesiumMoon.SetActive(true);
                     }
-                    // for terrains on other bodies, disable Cesium Moon and use ordinary functions 
+                    // for terrains on other bodies, disable Cesium Moon and use non-Cesium related functions 
                     else
                     {
                         SceneMaterializer.singleton.useCesium = false;
@@ -140,8 +140,9 @@ namespace TerrainEngine
                     if (SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>() != null)
                     {
                         // creates JMARS terrain using Cesium specific function
-                        StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface());
+                        yield return StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface());
                     }
+                    // adds nomenclature to scene
                     if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
                     
                     InfoPanel.Panel.UpdateInfo(scene);

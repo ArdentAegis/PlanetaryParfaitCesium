@@ -324,7 +324,7 @@ namespace XRControls{
                     Georeference.transform.position = Vector3.MoveTowards(Georeference.transform.position, Georeference.transform.position - verticalInput * speed, speed * Time.deltaTime);
 
                     // rotates the Moon 
-                    Vector3 position = platform.transform.position + inputDirection.normalized * speed * Time.deltaTime;
+                    Vector3 position = inputDirection.normalized * speed * Time.deltaTime;
                     double3 lonlath = Georeference.ellipsoid.CenteredFixedToLongitudeLatitudeHeight(
                         Georeference.TransformUnityPositionToEarthCenteredEarthFixed(new double3(position.x, position.y, position.z)
                             ));
