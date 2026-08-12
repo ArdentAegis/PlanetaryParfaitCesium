@@ -100,9 +100,9 @@ namespace UserInterface
         {
             if (SceneMaterializer.singleton.useCesium)
             {
-                resetPosition.gameObject.SetActive(georeference.transform.position != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition
-                                                || georeference.longitude != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x
-                                                || georeference.latitude != SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y);
+                resetPosition.gameObject.SetActive(georeference.transform.position != SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().georeferenceStartingPosition
+                                                || georeference.longitude != SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.x
+                                                || georeference.latitude != SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.y);
             }
             else
             {
@@ -158,9 +158,9 @@ namespace UserInterface
             {
                 if (SceneMaterializer.singleton.useCesium)
                 {
-                    georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition;
-                    georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x, 
-                                                                SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y, 
+                    georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().georeferenceStartingPosition;
+                    georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.x, 
+                                                                SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.y, 
                                                                 0);
                 }
                 else

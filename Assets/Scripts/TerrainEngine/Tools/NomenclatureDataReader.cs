@@ -71,8 +71,8 @@ namespace TerrainEngine.Tools
                 if (SceneMaterializer.singleton.useCesium)
                 {
                     // gets nomenclature position (but not height) on Cesium moon
-                    double2 lonlat = terrain.GetComponent<SphereShellMaker>().PixelCoordinatesToLonLat(values.x, values.y, heightTexture);
-                    newPosition = terrain.GetComponent<SphereShellMaker>().GetSpherePosition(lonlat.x, lonlat.y) + georeference.transform.position;
+                    double2 lonlat = terrain.GetComponent<CesiumJMARSTerrainMaker>().PixelCoordinatesToLonLat(values.x, values.y, heightTexture);
+                    newPosition = terrain.GetComponent<CesiumJMARSTerrainMaker>().GetSpherePosition(lonlat.x, lonlat.y) + georeference.transform.position;
                     
                     // raycast down to place pin on Cesium moon
                     RaycastHit hit;

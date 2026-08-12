@@ -108,9 +108,9 @@ namespace TerrainEngine
                     // resets Georeference position and rotation if Cesium is active
                     if (SceneMaterializer.singleton.useCesium)
                     {
-                        georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().georeferenceStartingPosition;
-                        georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.x, 
-                                                                    SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().cesiumStartingLonLat.y, 
+                        georeference.transform.position = SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().georeferenceStartingPosition;
+                        georeference.SetOriginLongitudeLatitudeHeight(SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.x, 
+                                                                    SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().cesiumStartingLonLat.y, 
                                                                     0);
                     }
                     // resets terrain position
@@ -137,10 +137,10 @@ namespace TerrainEngine
                     SceneMaterializer.singleton.SetMaterials(scene);
                     SceneMaterializer.singleton.selectedScene = scene;
 
-                    if (SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>() != null)
+                    if (SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>() != null)
                     {
                         // creates JMARS terrain using Cesium specific function
-                        yield return StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<SphereShellMaker>().MakeSurface());
+                        yield return StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().MakeSurface());
                     }
                     // adds nomenclature to scene
                     if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
