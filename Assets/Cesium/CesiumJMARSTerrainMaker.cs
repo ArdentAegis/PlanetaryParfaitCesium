@@ -53,10 +53,6 @@ namespace TerrainEngine {
         float elapsedTime = 0;
         Mesh mesh;
 
-        [Header("Player Rigs and Platform")]
-        [SerializeField] private Transform playerRigs;
-        [SerializeField] private Transform platform;
-
         [Header("Height Error Coloring")]
         // click in inspector to run ShowErrorColorCesium() once
         [Tooltip("Click to run ShowErrorColorCesium() once")]
@@ -72,6 +68,7 @@ namespace TerrainEngine {
         [SerializeField] private bool toggleErrorColor;
 
         [Header("Terrain Superimposing")]
+        [SerializeField] private Camera cesiumLoadingCamera;
         [Tooltip("Click to run PlaceTerrain() once")]
         [SerializeField] private bool placeTerrain;
 
@@ -173,18 +170,11 @@ namespace TerrainEngine {
             surface = obj;
 
             Renderer renderer = obj.GetComponent<Renderer>();
-            Vector3 bottomCenter = new Vector3(renderer.bounds.center.x, renderer.bounds.center.y, renderer.bounds.min.z - 20.0f);
+            Vector3 bottomCenter = new Vector3(renderer.bounds.center.x, renderer.bounds.center.y, renderer.bounds.min.z - 5.0f);
             
-            playerRigs.position += bottomCenter;
-            platform.position += bottomCenter;
-
-            yield return new WaitForSeconds(0.5f);
+            cesiumLoadingCamera.orthographicSize = bottomCenter.z;
             
             PlaceTerrain();
-
-            playerRigs.position -= bottomCenter;
-            platform.position -= bottomCenter;
-        
 
         //DEBUG: Instantiates points at the vertices.
         //    for (int i = 0; i < vertices.GetLength(0); i++)
