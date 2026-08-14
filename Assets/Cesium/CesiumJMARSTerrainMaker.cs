@@ -53,6 +53,10 @@ namespace TerrainEngine {
         float elapsedTime = 0;
         Mesh mesh;
 
+        [Header("Player Rigs and Platform")]
+        [SerializeField] private Transform playerRigs;
+        [SerializeField] private Transform platform;
+
         [Header("Height Error Coloring")]
         // click in inspector to run ShowErrorColorCesium() once
         [Tooltip("Click to run ShowErrorColorCesium() once")]
@@ -168,7 +172,18 @@ namespace TerrainEngine {
             // sets surface to new terrain gameobject
             surface = obj;
 
+            Renderer renderer = obj.GetComponent<Renderer>();
+            Vector3 bottomCenter = new Vector3(renderer.bounds.center.x, renderer.bounds.center.y, renderer.bounds.min.z - 20.0f);
+            
+            playerRigs.position += bottomCenter;
+            platform.position += bottomCenter;
+
+            yield return new WaitForSeconds(0.5f);
+            
             PlaceTerrain();
+
+            playerRigs.position -= bottomCenter;
+            platform.position -= bottomCenter;
         
 
         //DEBUG: Instantiates points at the vertices.
@@ -462,6 +477,9 @@ namespace TerrainEngine {
 
         }
 
+        /// <summary>
+        /// Raycasts from each vertex of the JMARS terrain to superimpose the JMARS terrain on the Cesium Moon
+        /// </summary>
         private void PlaceTerrain()
         {
             // gets terrain mesh information

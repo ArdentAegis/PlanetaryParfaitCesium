@@ -49,7 +49,7 @@ Material:
     - _scaleFactor: 0.0000040000004
     - _scaleFactor2: 1
     - _showErrorColor: 0
-    - _width: 1170
+    - _width: 1128
     m_Colors:
     - _uv_max: {r: 0.5, g: 1, b: 0, a: 0}
     - _uv_min: {r: 0, g: 0, b: 0, a: 0}

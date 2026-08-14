@@ -139,12 +139,18 @@ namespace TerrainEngine
 
                     if (SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>() != null)
                     {
+                        LoadingBar.Loading(0.05f, "Placing Terrain");
                         // creates JMARS terrain using Cesium specific function
                         yield return StartCoroutine(SceneMaterializer.singleton.activeTiles.GetComponent<CesiumJMARSTerrainMaker>().MakeSurface());
                     }
                     // adds nomenclature to scene
-                    if(nomenclature != null) NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
+                    if(nomenclature != null) 
+                    {
+                        NomenclatureDataReader.singleton.InstantiateNomenclature(nomenclature);
+                    }
                     
+                    LoadingBar.DoneLoading();
+
                     InfoPanel.Panel.UpdateInfo(scene);
                     ScaleBar.singleton.CalculatePrefabs(scene);
                     MainMenu.OpenPrimaryMenus(false);
@@ -285,7 +291,7 @@ namespace TerrainEngine
                         foreach(var data in layer.layer_data)
                         {
                             yield return StartCoroutine(DownloadNumericData(layer));
-                            LoadingBar.Loading(0.3f/layer.layer_data.Count, "Downloading Layer Data");
+                            LoadingBar.Loading(0.2f/layer.layer_data.Count, "Downloading Layer Data");
                             data.numericDataTexture = _texture;
                         }
                     }
@@ -293,7 +299,6 @@ namespace TerrainEngine
 
                 scene = currentScene; // makes the JMARS scene object publicly visible
                 TerrainMenu.layersDelegate.Invoke(scene);
-                LoadingBar.DoneLoading();
             }
         }
         
