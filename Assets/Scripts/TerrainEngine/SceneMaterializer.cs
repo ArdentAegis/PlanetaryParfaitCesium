@@ -22,7 +22,7 @@ namespace TerrainEngine{
 
         [HideInInspector] public JMARSScene selectedScene;
 
-        public Material shellMat;
+        public Material cesiumJMARSTerrainMat;
         public Material heightMat;
         public Material activeMaterial;
 
@@ -76,7 +76,7 @@ namespace TerrainEngine{
             {
                 cesiumTerrain.SetActive(true);
                 tiles.SetActive(false);
-                activeMaterial = shellMat;
+                activeMaterial = cesiumJMARSTerrainMat;
                 activeTiles = cesiumTerrain;
                 terrain = cesiumTerrain;
             }
